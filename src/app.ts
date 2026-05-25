@@ -3,6 +3,8 @@ import { cors } from "@elysiajs/cors";
 import { Server } from "socket.io";
 import { Server as Engine } from "@socket.io/bun-engine";
 import { env } from "./config/env";
+import { api_v1_router } from "./routes/v1/index.route";
+import { responseWrapper } from "./middleware/response-wrapper";
 
 const io = new Server({
   cors: {
@@ -49,9 +51,10 @@ const app = new Elysia({
       credentials: true,
     }),
   )
+  .use(responseWrapper)
   .get("/", () => ({
-    success: true,
     message: "Elysia + Socket.IO + Bun",
-  }));
+  }))
+  .group("/api/v1", (router) => router.use(api_v1_router));
 
 export { app, io, ioHandler };

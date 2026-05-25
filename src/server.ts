@@ -14,7 +14,19 @@ const server = Bun.serve({
   websocket: ioHandler.websocket,
 });
 
-console.log(`🚀 Server running on http://localhost:${env.PORT} as ${env.NODE_ENV}`);
+console.log(
+  `🚀 Server running on http://localhost:${env.PORT} as ${env.NODE_ENV}`,
+);
 console.log(`🔌 Socket.IO running on /realtime/`);
+
+const shutdown = async (signal: string) => {
+  console.log(`\n${signal} received. Shutting down gracefully...`);
+  server.stop();
+  console.log("🌐 HTTP server closed.");
+  process.exit(0);
+};
+
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("SIGTERM", () => shutdown("SIGTERM"));
 
 export { server };
