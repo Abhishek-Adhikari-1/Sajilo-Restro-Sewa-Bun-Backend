@@ -13,6 +13,12 @@ const envSchema = z.object({
     .transform((val) =>
       val === "*" ? ["*"] : val.split(",").map((v) => v.trim()),
     ),
+
+  FIREBASE_PROJECT_ID: z.string(),
+  FIREBASE_CLIENT_EMAIL: z.string(),
+  FIREBASE_PRIVATE_KEY: z
+    .string()
+    .transform((val) => val.replace(/\\n/g, "\n")),
 });
 
 const parsed = envSchema.safeParse(Bun.env);
