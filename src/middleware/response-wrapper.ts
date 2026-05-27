@@ -1,5 +1,7 @@
 import Elysia from "elysia";
 import { env } from "../config/env";
+import { AppError } from "../utils/app-error";
+import { HTTP_STATUS } from "../utils/http-status";
 
 export const responseWrapper = new Elysia({
   name: "sajilo-restro-sewa-response-wrapper",
@@ -17,7 +19,7 @@ export const responseWrapper = new Elysia({
 
       if (isRaw) return responseValue;
 
-      const status: number = (set.status as number) ?? 200;
+      const status: number = (set.status as number) ?? HTTP_STATUS.OK;
 
       const success: boolean = status < 400;
 
@@ -36,17 +38,28 @@ export const responseWrapper = new Elysia({
       };
     },
   )
+  .error({
+    AppError,
+  })
   .onError(
     {
       as: "global",
     },
-    ({ code, error, set }) => {
+    ({ code, error, set}) => {
       const baseError = {
         success: false,
         code,
       };
 
       switch (code) {
+        case "AppError":
+          set.status = error.statusCode;
+          return {
+            ...baseError,
+            message: error.message,
+            errors: error.errors,
+          };
+
         case "VALIDATION":
           return {
             ...baseError,

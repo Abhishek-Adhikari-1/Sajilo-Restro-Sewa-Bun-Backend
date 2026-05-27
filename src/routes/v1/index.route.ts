@@ -1,10 +1,9 @@
 import Elysia from "elysia";
-import { auth_router } from "./auth.route";
+import { auth_router } from "../../modules/auth/auth.module";
 
 const router = new Elysia({ name: "api-v1-router" }).use(auth_router);
 
 router.get("/", ({ set }) => {
-  set.status = 200;
   return {
     message: "Welcome to the API router!",
   };

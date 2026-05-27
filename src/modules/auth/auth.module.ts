@@ -1,6 +1,10 @@
 import Elysia, { t } from "elysia";
 import { db } from "../../config/firebase";
 import { userCreateSchema, usersCollection } from "../../schemas/user.schema";
+import { AuthModel } from "./auth.model";
+import { Auth } from "./auth.service";
+import { password } from "bun";
+import { AppError } from "../../utils/app-error";
 
 const router = new Elysia({
   name: "auth-router",
@@ -18,10 +22,23 @@ router.get("/", async () => {
   return users;
 });
 
-router.post("/login", ({ set }) => {
-  set.status = "Failed Dependency";
-  throw new Error("nIgger ko bann");
-});
+router.post(
+  "/login",
+  async ({ body }) => {
+    const res = await Auth.signIn({
+      email: body.email,
+      password: body.password,
+    });
+
+    return {
+      message: "User logged in successfully",
+      ...res,
+    };
+  },
+  {
+    body: AuthModel["signInBody"],
+  },
+);
 
 router.post(
   "/register",

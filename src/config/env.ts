@@ -19,6 +19,7 @@ const envSchema = z.object({
   FIREBASE_PRIVATE_KEY: z
     .string()
     .transform((val) => val.replace(/\\n/g, "\n")),
+  FIREBASE_AUTH_API_KEY: z.string(),
 });
 
 const parsed = envSchema.safeParse(Bun.env);
