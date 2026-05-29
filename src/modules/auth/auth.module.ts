@@ -1,10 +1,7 @@
 import Elysia, { t } from "elysia";
 import { db } from "../../config/firebase";
-import { userCreateSchema, usersCollection } from "../../schemas/user.schema";
 import { AuthModel } from "./auth.model";
 import { Auth } from "./auth.service";
-import { password } from "bun";
-import { AppError } from "../../utils/app-error";
 
 const router = new Elysia({
   name: "auth-router",
@@ -20,6 +17,30 @@ router.get("/", async () => {
   }));
 
   return users;
+
+  //  const parseResult = userCreateSchema.safeParse(body);
+
+  //  if (!parseResult.success) {
+  //    set.status = 400;
+  //    return {
+  //      error: "Validation failed",
+  //      details: parseResult.error.format(),
+  //    };
+  //  }
+
+  //  const userData = parseResult.data;
+
+  //  const ref = await usersCollection.add({
+  //    name: userData.name,
+  //    email: userData.email,
+  //    createdAt: new Date(),
+  //  });
+
+  //  set.status = 201;
+  //  return {
+  //    ref: ref.id,
+  //    message: "User created securely",
+  //  };
 });
 
 router.post(
@@ -42,36 +63,21 @@ router.post(
 
 router.post(
   "/register",
-  async ({ body, set }) => {
-    const parseResult = userCreateSchema.safeParse(body);
-
-    if (!parseResult.success) {
-      set.status = 400;
-      return {
-        error: "Validation failed",
-        details: parseResult.error.format(),
-      };
-    }
-
-    const userData = parseResult.data;
-
-    const ref = await usersCollection.add({
-      name: userData.name,
-      email: userData.email,
-      createdAt: new Date(),
+  async ({ body }) => {
+    const res = await Auth.signUp({
+      email: body.email,
+      password: body.password,
+      name: body.name,
+      role: body.role,
     });
 
-    set.status = 201;
     return {
-      ref: ref.id,
-      message: "User created securely",
+      message: "User registered successfully",
+      ...res,
     };
   },
   {
-    body: t.Object({
-      name: t.String(),
-      name2: t.String(),
-    }),
+    body: AuthModel["signUpBody"],
   },
 );
 
