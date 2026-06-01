@@ -2,6 +2,7 @@ import Elysia, { t } from "elysia";
 import { db } from "../../config/firebase";
 import { AuthModel } from "./auth.model";
 import { Auth } from "./auth.service";
+import { authPlugin } from "../../middleware/auth-middleware";
 
 const router = new Elysia({
   name: "auth-router",
@@ -78,6 +79,23 @@ router.post(
   },
   {
     body: AuthModel["signUpBody"],
+  },
+);
+
+router.get(
+  "/refresh",
+  async ({ query }) => {
+    const res = await Auth.refreshToken({
+      refreshToken: query.refreshToken,
+    });
+
+    return {
+      message: "Token refreshed successfully",
+      ...res,
+    };
+  },
+  {
+    query: AuthModel["refreshTokenBody"],
   },
 );
 

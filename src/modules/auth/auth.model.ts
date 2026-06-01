@@ -16,6 +16,7 @@ export const AuthModel = {
       ),
     role: userSchema.shape.role.optional(),
   }),
+  refreshTokenBody: z.object({ refreshToken: z.string() }),
 };
 
 export type AuthModel = {

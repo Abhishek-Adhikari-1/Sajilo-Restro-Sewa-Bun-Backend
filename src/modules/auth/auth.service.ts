@@ -1,14 +1,14 @@
 import { env } from "../../config/env";
-import type { UserRole } from "../../types/auth";
 import { AppError } from "../../utils/app-error";
 import { HTTP_STATUS } from "../../utils/http-status";
 import { sendEmail } from "../../utils/send-email";
-import { createUserDocument } from "../user/user.model";
+import { createUserDocument, getUserById } from "../user/user.model";
 import type { AuthModel } from "./auth.model";
 import admin from "firebase-admin";
 
 export abstract class Auth {
   static async signIn({ email, password }: AuthModel["signInBody"]) {
+    const auth = admin.auth();
     const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${env.FIREBASE_AUTH_API_KEY}`;
 
     const response = await fetch(url, {
@@ -83,11 +83,26 @@ export abstract class Auth {
       expiresIn: string;
     };
 
+    const user = await auth.getUser(successData.localId);
+
+    const userData = await getUserById(user.uid);
+
     return {
       token: successData.idToken,
       refreshToken: successData.refreshToken,
       expiresIn: successData.expiresIn,
       uid: successData.localId,
+      email: successData.email,
+      name: successData.displayName,
+      emailVerified: user.emailVerified,
+      disabled: user.disabled,
+      role: userData?.role,
+      avatar_url: userData?.avatar_url,
+      metadata: {
+        creationTime: user.metadata.creationTime,
+        lastSignInTime: user.metadata.lastSignInTime,
+        lastRefreshTime: user.metadata.lastRefreshTime,
+      },
     };
   }
 
@@ -105,7 +120,6 @@ export abstract class Auth {
         password,
         displayName: name,
       });
-
 
       await createUserDocument({
         uid: user.uid,
@@ -184,6 +198,47 @@ export abstract class Auth {
             error.message || "Failed t to create user.",
           );
       }
+    }
+  }
+
+  static async refreshToken({ refreshToken }: AuthModel["refreshTokenBody"]) {
+    try {
+      const auth = admin.auth();
+      const url = `https://securetoken.googleapis.com/v1/token?key=${env.FIREBASE_AUTH_API_KEY}`;
+
+      const params = new URLSearchParams();
+      params.append("grant_type", "refresh_token");
+      params.append("refresh_token", refreshToken);
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: params.toString(),
+      });
+
+      const data = (await response.json()) as {
+        access_token: string;
+        expires_in: string;
+        token_type: string;
+        refresh_token: string;
+        id_token: string;
+        user_id: string;
+        project_id: string;
+      };
+
+      return { 
+        accessToken: data.access_token,
+        expiresIn: data.expires_in,
+        tokenType: data.token_type,
+        refreshToken: data.refresh_token,
+       };
+    } catch (error: any) {
+      throw new AppError(
+        HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        error.message || "Failed to refresh token.",
+      );
     }
   }
 }

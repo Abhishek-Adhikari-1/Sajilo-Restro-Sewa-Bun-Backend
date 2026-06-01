@@ -57,7 +57,7 @@ export const createUserDocument = async ({
   email,
   role = "waiter",
   avatar_url = null,
-  is_active = true,
+  is_active = false,
 }: {
   uid: string;
   name: string;
