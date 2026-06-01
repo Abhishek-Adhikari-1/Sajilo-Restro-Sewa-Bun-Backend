@@ -9,41 +9,6 @@ const router = new Elysia({
   prefix: "/auth",
 });
 
-router.get("/", async () => {
-  const snapshot = await db.collection("users").get();
-
-  const users = snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
-
-  return users;
-
-  //  const parseResult = userCreateSchema.safeParse(body);
-
-  //  if (!parseResult.success) {
-  //    set.status = 400;
-  //    return {
-  //      error: "Validation failed",
-  //      details: parseResult.error.format(),
-  //    };
-  //  }
-
-  //  const userData = parseResult.data;
-
-  //  const ref = await usersCollection.add({
-  //    name: userData.name,
-  //    email: userData.email,
-  //    createdAt: new Date(),
-  //  });
-
-  //  set.status = 201;
-  //  return {
-  //    ref: ref.id,
-  //    message: "User created securely",
-  //  };
-});
-
 router.post(
   "/login",
   async ({ body }) => {
@@ -97,6 +62,28 @@ router.get(
   {
     query: AuthModel["refreshTokenBody"],
   },
+);
+
+router.group("", (app) =>
+  app.use(authPlugin).get("/me", ({ user, userRecord }) => {
+    return {
+      message: "Profile fetched successfully",
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      uid: user.uid,
+      avatar_url: user.avatar_url,
+      is_active: user.is_active,
+      emailVerified: userRecord.emailVerified,
+      disabled: userRecord.disabled,
+      updated_at: user.updated_at,
+      metadata: {
+        lastSignInTime: userRecord.metadata.lastSignInTime,
+        creationTime: userRecord.metadata.creationTime,
+        lastRefreshTime: userRecord.metadata.lastRefreshTime,
+      },
+    };
+  }),
 );
 
 export { router as auth_router };
