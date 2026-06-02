@@ -2,7 +2,8 @@ import Elysia, { t } from "elysia";
 import { db } from "../../config/firebase";
 import { AuthModel } from "./auth.model";
 import { Auth } from "./auth.service";
-import { authPlugin } from "../../middleware/auth-middleware";
+import { authPlugin } from "../../middleware/auth-plugin";
+import { authorizationPlugin } from "../../middleware/authorization-plugin";
 
 const router = new Elysia({
   name: "auth-router",
@@ -65,25 +66,37 @@ router.get(
 );
 
 router.group("", (app) =>
-  app.use(authPlugin).get("/me", ({ user, userRecord }) => {
-    return {
-      message: "Profile fetched successfully",
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      uid: user.uid,
-      avatar_url: user.avatar_url,
-      is_active: user.is_active,
-      emailVerified: userRecord.emailVerified,
-      disabled: userRecord.disabled,
-      updated_at: user.updated_at,
-      metadata: {
-        lastSignInTime: userRecord.metadata.lastSignInTime,
-        creationTime: userRecord.metadata.creationTime,
-        lastRefreshTime: userRecord.metadata.lastRefreshTime,
-      },
-    };
-  }),
+  app
+    .use(authPlugin)
+    .get("/me", ({ user, userRecord }) => {
+      return {
+        message: "Profile fetched successfully",
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        uid: user.uid,
+        avatar_url: user.avatar_url,
+        is_active: user.is_active,
+        emailVerified: userRecord.emailVerified,
+        disabled: userRecord.disabled,
+        updated_at: user.updated_at,
+        metadata: {
+          lastSignInTime: userRecord.metadata.lastSignInTime,
+          creationTime: userRecord.metadata.creationTime,
+          lastRefreshTime: userRecord.metadata.lastRefreshTime,
+        },
+      };
+    })
+    .use(authorizationPlugin)
+    .get("admin", ({ user }) => {
+      return {
+        message: "Profile fetched successfully",
+        name: user.name,
+        email: user.email,
+      };
+    },{
+      restrictTo: ["admin"]
+    }),
 );
 
 export { router as auth_router };
