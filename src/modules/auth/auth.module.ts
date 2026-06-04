@@ -1,5 +1,4 @@
 import Elysia, { t } from "elysia";
-import { db } from "../../config/firebase";
 import { AuthModel } from "./auth.model";
 import { Auth } from "./auth.service";
 import { authPlugin } from "../../middleware/auth-plugin";
