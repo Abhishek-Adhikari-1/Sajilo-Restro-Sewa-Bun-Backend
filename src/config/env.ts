@@ -20,6 +20,10 @@ const envSchema = z.object({
     .string()
     .transform((val) => val.replace(/\\n/g, "\n")),
   FIREBASE_AUTH_API_KEY: z.string(),
+
+  CLOUDINARY_CLOUD_NAME: z.string(),
+  CLOUDINARY_API_KEY: z.string(),
+  CLOUDINARY_API_SECRET: z.string(),
 });
 
 const parsed = envSchema.safeParse(Bun.env);

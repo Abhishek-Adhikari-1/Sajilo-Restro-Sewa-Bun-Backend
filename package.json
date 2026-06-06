@@ -19,6 +19,7 @@
   "dependencies": {
     "@elysiajs/cors": "^1.4.2",
     "@socket.io/bun-engine": "^0.1.1",
+    "cloudinary": "^2.10.0",
     "elysia": "^1.4.28",
     "firebase-admin": "^13.10.0",
     "socket.io": "^4.8.3",
