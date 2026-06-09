@@ -13,9 +13,15 @@ const envSchema = z.object({
     .transform((val) =>
       val === "*" ? ["*"] : val.split(",").map((v) => v.trim()),
     ),
+
+  DATABASE_NAME: z.string(),
+  DATABASE_HOST: z.string(),
+  DATABASE_PORT: z.coerce.number().default(5432),
+  DATABASE_USER: z.string(),
+  DATABASE_PASSWORD: z.string(),
 });
 
-const parsed = envSchema.safeParse(Bun.env);
+const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
   console.error("❌ Invalid environment variables:");
