@@ -1,3 +1,5 @@
+export type HttpStatusCode = (typeof HTTP_STATUS)[keyof typeof HTTP_STATUS];
+
 export const HTTP_STATUS = {
   CONTINUE: 100,
   SWITCHING_PROTOCOLS: 101,
@@ -39,5 +41,3 @@ export const HTTP_STATUS = {
   SERVICE_UNAVAILABLE: 503,
   GATEWAY_TIMEOUT: 504,
 } as const;
-
-export type HttpStatusCode = (typeof HTTP_STATUS)[keyof typeof HTTP_STATUS];

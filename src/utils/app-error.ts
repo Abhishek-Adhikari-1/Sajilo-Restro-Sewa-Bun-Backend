@@ -8,7 +8,7 @@ export class AppError extends Error {
 
   constructor(statusCode: HttpStatusCode, message: string, errors?: unknown) {
     super(message);
-    this.code = "AppError";
+    this.code = "APP_ERROR";
     this.statusCode = statusCode;
     this.isOperational = true;
     this.name = this.constructor.name;

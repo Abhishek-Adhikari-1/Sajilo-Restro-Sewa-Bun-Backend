@@ -39,20 +39,20 @@ export const responseWrapper = new Elysia({
     },
   )
   .error({
-    AppError,
+    APP_ERROR: AppError,
   })
   .onError(
     {
       as: "global",
     },
-    ({ code, error, set}) => {
+    ({ code, error, set }) => {
       const baseError = {
         success: false,
         code,
       };
 
       switch (code) {
-        case "AppError":
+        case "APP_ERROR":
           set.status = error.statusCode;
           return {
             ...baseError,
