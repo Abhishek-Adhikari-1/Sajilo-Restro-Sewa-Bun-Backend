@@ -5,6 +5,7 @@ import { Server as Engine } from "@socket.io/bun-engine";
 import { env } from "./config/env";
 import { api_v1_router } from "./routes/v1/index.route";
 import { responseWrapper } from "./middleware/response-wrapper";
+import openapi from "@elysia/openapi";
 
 const io = new Server({
   cors: {
@@ -44,6 +45,7 @@ io.on("connection", (socket) => {
 const app = new Elysia({
   name: "sajilo-restro-sewa",
 })
+  .use(openapi())
   .use(
     cors({
       origin: env.ALLOWED_ORIGINS,

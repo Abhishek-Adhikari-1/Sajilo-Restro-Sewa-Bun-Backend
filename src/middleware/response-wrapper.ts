@@ -1,4 +1,4 @@
-import Elysia from "elysia";
+import Elysia, { StatusMap } from "elysia";
 import { env } from "../config/env";
 import { AppError } from "../utils/app-error";
 import { HTTP_STATUS } from "../utils/http-status";
@@ -19,7 +19,8 @@ export const responseWrapper = new Elysia({
 
       if (isRaw) return responseValue;
 
-      const status: number = (set.status as number) ?? HTTP_STATUS.OK;
+      const status: number | StatusMap =
+        (set.status as number) ?? HTTP_STATUS.OK;
 
       const success: boolean = status < 400;
 
@@ -50,6 +51,11 @@ export const responseWrapper = new Elysia({
         success: false,
         code,
       };
+
+      console.log({
+        baseError,
+        error
+      });
 
       switch (code) {
         case "APP_ERROR":

@@ -1,13 +1,10 @@
 import Elysia from "elysia";
-import { db } from "../../config/db";
+import { auth_router } from "../../modules/auth/auth.module";
 
-const router = new Elysia({ name: "api-v1-router" });
+const router = new Elysia({ name: "api-v1-router" }).use(auth_router);
 
 router.get("/", async () => {
-  const users = await db.query.users.findMany();
-
   return {
-    users,
     message: "Welcome to the API router!",
   };
 });

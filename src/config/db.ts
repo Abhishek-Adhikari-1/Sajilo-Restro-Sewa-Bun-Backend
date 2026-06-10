@@ -9,11 +9,15 @@ const client = postgres({
   port: env.DATABASE_PORT,
   user: env.DATABASE_USER,
   password: env.DATABASE_PASSWORD,
-  max: 1,
+  max: env.NODE_ENV === "production" ? 20 : 5,
   ssl: env.NODE_ENV === "production",
+  idle_timeout: 20,
+  connect_timeout: 10,
 });
 
 export const db = drizzle(client, {
   schema,
   logger: env.NODE_ENV !== "production",
 });
+export type DB = typeof db;
+export type TX = Parameters<Parameters<typeof db.transaction>[0]>[0];
