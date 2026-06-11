@@ -7,7 +7,6 @@ import {
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
 import { users } from "./user.schema";
-import { sessions } from "./session.schema";
 
 export const accounts = pgTable(
   "accounts",
@@ -65,7 +64,6 @@ export const accountsRelations = relations(accounts, ({ one, many }) => ({
     fields: [accounts.userId],
     references: [users.id],
   }),
-  sessions: many(sessions),
 }));
 
 // ─── Types ────────────────────────────────────────────────────────────────────

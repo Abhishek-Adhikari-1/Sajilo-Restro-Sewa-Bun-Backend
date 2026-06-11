@@ -1,4 +1,4 @@
-import { t, type UnwrapSchema } from "elysia";
+import { type UnwrapSchema } from "elysia";
 import { z } from "zod";
 import { userRoleEnum } from "../../db";
 
