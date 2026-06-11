@@ -20,14 +20,13 @@ const envSchema = z.object({
   DATABASE_USER: z.string(),
   DATABASE_PASSWORD: z.string(),
 
-  API_URL: z.string().default("http://localhost:8000"),
-  FRONTEND_URL: z.string().default("http://localhost:3000"),
-
-  ACCESS_TOKEN_EXPIRES_MINUTES: z.coerce.number().default(15),
-  REFRESH_TOKEN_EXPIRES_DAYS: z.coerce.number().default(30),
   SESSION_EXPIRES_DAYS: z.coerce.number().default(7),
   EMAIL_VERIFICATION_EXPIRES_HOURS: z.coerce.number().default(24),
   PASSWORD_RESET_EXPIRES_HOURS: z.coerce.number().default(1),
+
+  CLOUDINARY_CLOUD_NAME: z.string(),
+  CLOUDINARY_API_KEY: z.string(),
+  CLOUDINARY_API_SECRET: z.string(),
 });
 
 const parsed = envSchema.safeParse(process.env);

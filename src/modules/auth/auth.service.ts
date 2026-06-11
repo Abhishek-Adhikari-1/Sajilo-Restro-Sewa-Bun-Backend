@@ -282,7 +282,7 @@ export abstract class AuthService {
         status: session.user.status,
         emailVerified: session.user.emailVerified,
         role: session.user.role,
-        avatar: session.user.avatar?.url || null,
+        image: session.user.avatar?.url || null,
         createdAt: session.user.createdAt,
         updatedAt: session.user.updatedAt,
       },
