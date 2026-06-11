@@ -4,6 +4,7 @@ import {
   text,
   timestamp,
   uuid,
+  varchar,
   pgEnum,
 } from "drizzle-orm/pg-core";
 import { customers } from "./customer.schema";
@@ -25,7 +26,7 @@ export const tables = pgTable("tables", {
   capacity: integer("capacity").notNull(),
   occupiedSeats: integer("occupied_seats").notNull().default(0),
   status: tableStatusEnum("status").notNull().default("available"),
-  activeOrders: uuid("active_orders").array().notNull().default([]),
+  activeOrders: varchar("active_orders", { length: 8 }).array().notNull().default([]),
   reservedFor: uuid("reserved_for").references(() => customers.id, {
     onDelete: "set null",
   }),

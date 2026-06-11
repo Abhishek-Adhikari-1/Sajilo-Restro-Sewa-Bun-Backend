@@ -96,7 +96,7 @@ CREATE TABLE "tables" (
 	"capacity" integer NOT NULL,
 	"occupied_seats" integer DEFAULT 0 NOT NULL,
 	"status" "table_status" DEFAULT 'available' NOT NULL,
-	"active_orders" uuid[] DEFAULT '{}' NOT NULL,
+	"active_orders" varchar(8)[] DEFAULT '{}' NOT NULL,
 	"reserved_for" uuid,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
@@ -126,7 +126,7 @@ CREATE TABLE "menus" (
 );
 --> statement-breakpoint
 CREATE TABLE "orders" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" varchar(8) PRIMARY KEY NOT NULL,
 	"table_id" uuid NOT NULL,
 	"created_by" uuid NOT NULL,
 	"guests_count" integer NOT NULL,
@@ -138,7 +138,7 @@ CREATE TABLE "orders" (
 --> statement-breakpoint
 CREATE TABLE "order_items" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"order_id" uuid NOT NULL,
+	"order_id" varchar(8) NOT NULL,
 	"menu_id" uuid NOT NULL,
 	"quantity" integer NOT NULL,
 	"price_at_time" real NOT NULL,
@@ -149,8 +149,8 @@ CREATE TABLE "order_items" (
 );
 --> statement-breakpoint
 CREATE TABLE "payments" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"order_id" uuid NOT NULL,
+	"id" varchar(8) PRIMARY KEY NOT NULL,
+	"order_id" varchar(8) NOT NULL,
 	"customer_id" uuid,
 	"subtotal" real NOT NULL,
 	"amount" real NOT NULL,

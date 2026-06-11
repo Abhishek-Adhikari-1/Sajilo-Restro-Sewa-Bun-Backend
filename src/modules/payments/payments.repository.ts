@@ -179,7 +179,7 @@ export class PaymentsRepo {
           await trx
             .update(tables)
             .set({
-              activeOrders: sql`array_remove(active_orders, ${data.order_id}::uuid)`,
+              activeOrders: sql`array_remove(active_orders, ${data.order_id}::varchar)`,
               occupiedSeats: newOccupiedSeats,
               status: newStatus,
             })

@@ -4,12 +4,14 @@ import {
   integer,
   timestamp,
   uuid,
+  varchar,
   pgEnum,
 } from "drizzle-orm/pg-core";
 import { tables } from "./table.schema";
 import { users } from "./user.schema";
 import { relations } from "drizzle-orm";
 import { orderItems } from "./order_item.schema";
+import { generateShortId } from "../../utils/id";
 
 export const orderStatusEnum = pgEnum("order_status", [
   "pending",
@@ -22,7 +24,9 @@ export const orderStatusEnum = pgEnum("order_status", [
 ]);
 
 export const orders = pgTable("orders", {
-  id: uuid("id").primaryKey().defaultRandom(),
+  id: varchar("id", { length: 8 })
+    .primaryKey()
+    .$defaultFn(() => generateShortId()),
   tableId: uuid("table_id")
     .references(() => tables.id, { onDelete: "restrict" })
     .notNull(),

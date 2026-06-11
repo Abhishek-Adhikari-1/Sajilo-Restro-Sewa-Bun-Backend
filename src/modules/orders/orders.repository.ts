@@ -284,7 +284,7 @@ export abstract class OrdersRepo {
          const newStatus = newOccupiedSeats >= table.capacity ? "occupied" : "available";
 
          const activeOrdersUpdate = shouldRemoveActiveOrder 
-             ? sql`array_remove(active_orders, ${id}::uuid)` 
+             ? sql`array_remove(active_orders, ${id}::varchar)`
              : table.activeOrders;
 
          await this.conn(tx)

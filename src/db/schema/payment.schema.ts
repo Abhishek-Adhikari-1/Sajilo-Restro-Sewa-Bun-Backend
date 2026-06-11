@@ -5,11 +5,13 @@ import {
   integer,
   timestamp,
   uuid,
+  varchar,
   pgEnum,
 } from "drizzle-orm/pg-core";
 import { orders } from "./order.schema";
 import { customers } from "./customer.schema";
 import { users } from "./user.schema";
+import { generateShortId } from "../../utils/id";
 
 export const paymentMethodEnum = pgEnum("payment_method", [
   "cash",
@@ -32,8 +34,10 @@ export const discountTypeEnum = pgEnum("discount_type", [
 export const taxTypeEnum = pgEnum("tax_type", ["percentage", "fixed"]);
 
 export const payments = pgTable("payments", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  orderId: uuid("order_id")
+  id: varchar("id", { length: 8 })
+    .primaryKey()
+    .$defaultFn(() => generateShortId()),
+  orderId: varchar("order_id", { length: 8 })
     .references(() => orders.id, { onDelete: "restrict" })
     .notNull(),
   customerId: uuid("customer_id").references(() => customers.id, {

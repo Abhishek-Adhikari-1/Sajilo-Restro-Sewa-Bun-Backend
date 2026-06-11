@@ -5,6 +5,7 @@ import {
   text,
   timestamp,
   uuid,
+  varchar,
   pgEnum,
 } from "drizzle-orm/pg-core";
 import { orders } from "./order.schema";
@@ -21,7 +22,7 @@ export const orderItemStatusEnum = pgEnum("order_item_status", [
 
 export const orderItems = pgTable("order_items", {
   id: uuid("id").primaryKey().defaultRandom(),
-  orderId: uuid("order_id")
+  orderId: varchar("order_id", { length: 8 })
     .references(() => orders.id, { onDelete: "cascade" })
     .notNull(),
   menuId: uuid("menu_id")

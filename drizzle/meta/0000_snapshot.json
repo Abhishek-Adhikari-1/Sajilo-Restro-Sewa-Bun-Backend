@@ -1,5 +1,5 @@
 {
-  "id": "1d51bcc2-df57-4910-a534-c10401148871",
+  "id": "1c7a66c1-e0ae-430e-a8c7-d7349c248a0a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -657,7 +657,7 @@
         },
         "active_orders": {
           "name": "active_orders",
-          "type": "uuid[]",
+          "type": "varchar(8)[]",
           "primaryKey": false,
           "notNull": true,
           "default": "'{}'"
@@ -888,10 +888,9 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "uuid",
+          "type": "varchar(8)",
           "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
+          "notNull": true
         },
         "table_id": {
           "name": "table_id",
@@ -988,7 +987,7 @@
         },
         "order_id": {
           "name": "order_id",
-          "type": "uuid",
+          "type": "varchar(8)",
           "primaryKey": false,
           "notNull": true
         },
@@ -1080,14 +1079,13 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "uuid",
+          "type": "varchar(8)",
           "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
+          "notNull": true
         },
         "order_id": {
           "name": "order_id",
-          "type": "uuid",
+          "type": "varchar(8)",
           "primaryKey": false,
           "notNull": true
         },
