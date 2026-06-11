@@ -17,7 +17,7 @@ const client = postgres({
 
 export const db = drizzle(client, {
   schema,
-  logger: env.NODE_ENV !== "production",
+  // logger: env.NODE_ENV !== "production",
 });
 export type DB = typeof db;
 export type TX = Parameters<Parameters<typeof db.transaction>[0]>[0];

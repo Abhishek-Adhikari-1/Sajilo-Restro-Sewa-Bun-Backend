@@ -10,6 +10,7 @@ import { relations, sql } from "drizzle-orm";
 import { images } from "./image.schema";
 import { accounts } from "./account.schema";
 import { sessions } from "./session.schema";
+import { orders } from "./order.schema";
 
 export const userStatusEnum = pgEnum("user_status", [
   "inactive",
@@ -59,6 +60,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   }),
   accounts: many(accounts),
   sessions: many(sessions),
+  orders: many(orders),
 }));
 
 // ─── Types ────────────────────────────────────────────────────────────────────

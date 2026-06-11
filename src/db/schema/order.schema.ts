@@ -1,12 +1,22 @@
-import { pgTable, text, integer, timestamp, uuid, pgEnum } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  integer,
+  timestamp,
+  uuid,
+  pgEnum,
+} from "drizzle-orm/pg-core";
 import { tables } from "./table.schema";
 import { users } from "./user.schema";
+import { relations } from "drizzle-orm";
+import { orderItems } from "./order_item.schema";
 
 export const orderStatusEnum = pgEnum("order_status", [
   "pending",
-  "in_progress",
+  "preparing",
   "ready",
   "served",
+  "billing",
   "completed",
   "cancelled",
 ]);
@@ -32,3 +42,17 @@ export const orders = pgTable("orders", {
 
 export type Order = typeof orders.$inferSelect;
 export type NewOrder = typeof orders.$inferInsert;
+
+export const ordersRelations = relations(orders, ({ one, many }) => ({
+  table: one(tables, {
+    fields: [orders.tableId],
+    references: [tables.id],
+  }),
+
+  createdByUser: one(users, {
+    fields: [orders.createdBy],
+    references: [users.id],
+  }),
+
+  items: many(orderItems),
+}));

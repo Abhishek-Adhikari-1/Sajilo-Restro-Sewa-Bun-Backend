@@ -2,12 +2,15 @@ import Elysia, { t } from "elysia";
 import { ImageModel } from "./image.model";
 import { authPlugin } from "../../middleware/auth.plugin";
 import { ImageService } from "./image.service";
+import { authorizationPlugin } from "../../middleware/authorization-plugin";
 
 const router = new Elysia({
   name: "image-router",
   prefix: "/images",
   tags: ["Images"],
-}).use(authPlugin);
+})
+  .use(authPlugin)
+  .use(authorizationPlugin);
 
 router.post(
   "/upload",
@@ -30,6 +33,7 @@ router.post(
   },
   {
     body: ImageModel.uploadBody,
+    restrictTo: "*",
     detail: {
       summary: "Upload an image",
       description:
@@ -49,6 +53,7 @@ router.delete(
   },
   {
     params: ImageModel.deleteParams,
+    restrictTo: "*",
     detail: {
       summary: "Delete an image by ID",
       description:

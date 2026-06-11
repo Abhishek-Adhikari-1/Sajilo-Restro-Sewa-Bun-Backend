@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1781140048916,
-      "tag": "0000_short_tarantula",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1781145503187,
-      "tag": "0001_serious_puff_adder",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1781146084825,
-      "tag": "0002_dashing_trauma",
+      "when": 1781197247338,
+      "tag": "0000_huge_molly_hayes",
       "breakpoints": true
     }
   ]

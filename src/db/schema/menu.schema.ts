@@ -1,14 +1,26 @@
-import { pgTable, text, integer, boolean, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  integer,
+  real,
+  boolean,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { categories } from "./category.schema";
 import { images } from "./image.schema";
+import { relations } from "drizzle-orm";
+import { orderItems } from "./order_item.schema";
 
 export const menus = pgTable("menus", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   description: text("description"),
-  price: integer("price").notNull(), // Store in cents/paisa
+  price: real("price").notNull(), // Store in exact amount (floats supported)
   estimatedPreparationTime: integer("estimated_preparation_time"), // minutes
-  imageId: uuid("image_id").references(() => images.id, { onDelete: "set null" }),
+  imageId: uuid("image_id").references(() => images.id, {
+    onDelete: "set null",
+  }),
   categoryId: uuid("category_id")
     .references(() => categories.id, { onDelete: "restrict" })
     .notNull(),
@@ -20,6 +32,10 @@ export const menus = pgTable("menus", {
     .notNull()
     .defaultNow(),
 });
+
+export const menusRelations = relations(menus, ({ many }) => ({
+  orderItems: many(orderItems),
+}));
 
 export type Menu = typeof menus.$inferSelect;
 export type NewMenu = typeof menus.$inferInsert;

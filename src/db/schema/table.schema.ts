@@ -7,6 +7,8 @@ import {
   pgEnum,
 } from "drizzle-orm/pg-core";
 import { customers } from "./customer.schema";
+import { relations } from "drizzle-orm";
+import { orders } from "./order.schema";
 
 export const tableStatusEnum = pgEnum("table_status", [
   "available",
@@ -23,6 +25,7 @@ export const tables = pgTable("tables", {
   capacity: integer("capacity").notNull(),
   occupiedSeats: integer("occupied_seats").notNull().default(0),
   status: tableStatusEnum("status").notNull().default("available"),
+  activeOrders: uuid("active_orders").array().notNull().default([]),
   reservedFor: uuid("reserved_for").references(() => customers.id, {
     onDelete: "set null",
   }),
@@ -36,3 +39,7 @@ export const tables = pgTable("tables", {
 
 export type Table = typeof tables.$inferSelect;
 export type NewTable = typeof tables.$inferInsert;
+
+export const tablesRelations = relations(tables, ({ many }) => ({
+  orders: many(orders),
+}));

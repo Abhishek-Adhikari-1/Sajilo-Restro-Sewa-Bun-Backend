@@ -1,4 +1,12 @@
-import { pgTable, text, integer, timestamp, uuid, pgEnum } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  real,
+  integer,
+  timestamp,
+  uuid,
+  pgEnum,
+} from "drizzle-orm/pg-core";
 import { orders } from "./order.schema";
 import { customers } from "./customer.schema";
 import { users } from "./user.schema";
@@ -17,7 +25,10 @@ export const paymentStatusEnum = pgEnum("payment_status", [
   "refunded",
 ]);
 
-export const discountTypeEnum = pgEnum("discount_type", ["percentage", "fixed"]);
+export const discountTypeEnum = pgEnum("discount_type", [
+  "percentage",
+  "fixed",
+]);
 export const taxTypeEnum = pgEnum("tax_type", ["percentage", "fixed"]);
 
 export const payments = pgTable("payments", {
@@ -28,14 +39,14 @@ export const payments = pgTable("payments", {
   customerId: uuid("customer_id").references(() => customers.id, {
     onDelete: "set null",
   }),
-  subtotal: integer("subtotal").notNull(), // sum of all order items
-  totalAmount: integer("amount").notNull(), // final amount paid
+  subtotal: real("subtotal").notNull(), // sum of all order items
+  totalAmount: real("amount").notNull(), // final amount paid
   method: paymentMethodEnum("method").notNull(),
   status: paymentStatusEnum("status").notNull().default("pending"),
   discountType: discountTypeEnum("discount_type"),
-  discountValue: integer("discount_value"),
+  discountValue: real("discount_value"),
   taxType: taxTypeEnum("tax_type"),
-  taxValue: integer("tax_value"),
+  taxValue: real("tax_value"),
   notes: text("notes"),
   createdBy: uuid("created_by")
     .references(() => users.id, { onDelete: "restrict" })

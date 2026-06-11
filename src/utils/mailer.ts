@@ -124,3 +124,6 @@
 export async function sendEmail(data?: any) {
   console.log("Sending email...");
 }
+
+export const sleep = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));

@@ -1,0 +1,19 @@
+--- payments.service.ts
++++ payments.service.ts
+@@ -1,11 +1,15 @@
+ import { PaymentsRepo } from "./payments.repository";
+ import { OrdersRepo } from "../orders/orders.repository";
+-import type { CheckoutBody } from "./payments.model";
++import type { CheckoutBody, HistoryQuery } from "./payments.model";
+ import { getSocketIO } from "../../config/socket";
+ 
+ export class PaymentsService {
++  static async getHistory(query: HistoryQuery) {
++    return await PaymentsRepo.getHistory(query);
++  }
++
+   static async checkout(data: CheckoutBody, processedBy: string) {
+     const payment = await PaymentsRepo.checkout(data, processedBy);
+ 
+     // Emit socket events to update active orders across clients
+ 
