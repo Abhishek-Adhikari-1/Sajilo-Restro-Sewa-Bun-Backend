@@ -11,7 +11,7 @@ export const authPlugin = new Elysia({ name: "auth-plugin" }).derive(
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       throw new AppError(
         HTTP_STATUS.UNAUTHORIZED,
-        "Authentication required. Send: Authorization: Bearer <sessionToken>",
+        "Authentication required. Send: Authorization: Bearer <session_token>",
       );
     }
 
@@ -50,6 +50,40 @@ export const authPlugin = new Elysia({ name: "auth-plugin" }).derive(
     }
     if (result.user.status === "inactive") {
       throw new AppError(HTTP_STATUS.FORBIDDEN, "Your account is not active.");
+    }
+
+    return {
+      user: result.user,
+      session: result.session,
+    };
+  },
+);
+
+export const tokenAuthPlugin = new Elysia({ name: "token-auth-plugin" }).derive(
+  { as: "global" },
+  async ({ request }) => {
+    const authHeader = request.headers.get("authorization");
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      throw new AppError(
+        HTTP_STATUS.UNAUTHORIZED,
+        "Authentication required. Send: Authorization: Bearer <session_token>",
+      );
+    }
+
+    const sessionToken = authHeader.slice(7).trim();
+
+    if (!sessionToken) {
+      throw new AppError(HTTP_STATUS.UNAUTHORIZED, "Session token is missing.");
+    }
+
+    const result = await AuthService.getSessionUser(sessionToken);
+
+    if (!result) {
+      throw new AppError(
+        HTTP_STATUS.UNAUTHORIZED,
+        "Session expired or invalid. Please log in again.",
+      );
     }
 
     return {

@@ -1,3 +1,4 @@
+CREATE TYPE "public"."user_roles" AS ENUM('waiter', 'cashier', 'kitchen', 'admin');--> statement-breakpoint
 CREATE TYPE "public"."user_status" AS ENUM('inactive', 'active', 'suspended', 'disabled');--> statement-breakpoint
 CREATE TYPE "public"."verification_type" AS ENUM('email_verification', 'password_reset', 'forgot_password', 'oauth_callback');--> statement-breakpoint
 CREATE TABLE "users" (
@@ -7,6 +8,7 @@ CREATE TABLE "users" (
 	"email" text NOT NULL,
 	"email_verified" boolean DEFAULT false NOT NULL,
 	"status" "user_status" DEFAULT 'inactive' NOT NULL,
+	"role" "user_roles" DEFAULT 'waiter' NOT NULL,
 	"image_id" uuid,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,

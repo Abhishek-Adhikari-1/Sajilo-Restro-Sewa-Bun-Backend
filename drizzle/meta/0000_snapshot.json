@@ -1,5 +1,5 @@
 {
-  "id": "5ab35887-4b85-4830-98f5-2aa30029c021",
+  "id": "dfb2e3a8-58d8-4d66-9b9b-652f586bb935",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -47,6 +47,14 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'inactive'"
+        },
+        "role": {
+          "name": "role",
+          "type": "user_roles",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'waiter'"
         },
         "image_id": {
           "name": "image_id",
@@ -563,6 +571,16 @@
     }
   },
   "enums": {
+    "public.user_roles": {
+      "name": "user_roles",
+      "schema": "public",
+      "values": [
+        "waiter",
+        "cashier",
+        "kitchen",
+        "admin"
+      ]
+    },
     "public.user_status": {
       "name": "user_status",
       "schema": "public",

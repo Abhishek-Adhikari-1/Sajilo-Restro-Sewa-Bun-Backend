@@ -36,6 +36,7 @@ export abstract class AuthService {
     firstName,
     lastName,
     password,
+    role,
   }: RegisterService): Promise<{ message: string }> {
     // 1. Check for existing email — fast path before transaction
     const existingUser = await UserRepo.findUserByEmail(email);
@@ -56,6 +57,7 @@ export abstract class AuthService {
           lastName: lastName,
           email,
           status: "inactive",
+          role,
         },
         tx,
       );
@@ -122,27 +124,27 @@ export abstract class AuthService {
     }
 
     // 2. Status checks
-    if (!user.emailVerified) {
-      throw new AppError(
-        HTTP_STATUS.FORBIDDEN,
-        "Please verify your email address before logging in.",
-      );
-    }
-    if (user.status === "disabled") {
-      throw new AppError(
-        HTTP_STATUS.FORBIDDEN,
-        "Your account has been disabled. Please contact support.",
-      );
-    }
-    if (user.status === "suspended") {
-      throw new AppError(
-        HTTP_STATUS.FORBIDDEN,
-        "Your account is temporarily suspended.",
-      );
-    }
-    if (user.status === "inactive") {
-      throw new AppError(HTTP_STATUS.FORBIDDEN, "Your account is not active.");
-    }
+    // if (!user.emailVerified) {
+    //   throw new AppError(
+    //     HTTP_STATUS.FORBIDDEN,
+    //     "Please verify your email address before logging in.",
+    //   );
+    // }
+    // if (user.status === "disabled") {
+    //   throw new AppError(
+    //     HTTP_STATUS.FORBIDDEN,
+    //     "Your account has been disabled. Please contact support.",
+    //   );
+    // }
+    // if (user.status === "suspended") {
+    //   throw new AppError(
+    //     HTTP_STATUS.FORBIDDEN,
+    //     "Your account is temporarily suspended.",
+    //   );
+    // }
+    // if (user.status === "inactive") {
+    //   throw new AppError(HTTP_STATUS.FORBIDDEN, "Your account is not active.");
+    // }
 
     // 3. Generate session token
     const { raw, hashed } = generateAndHashToken(64);
@@ -165,6 +167,7 @@ export abstract class AuthService {
         email: user.email,
         status: user.status,
         emailVerified: user.emailVerified,
+        role: user.role,
         avatar: user.avatar?.url,
       },
       session: {
@@ -278,6 +281,7 @@ export abstract class AuthService {
         email: session.user.email,
         status: session.user.status,
         emailVerified: session.user.emailVerified,
+        role: session.user.role,
         avatar: session.user.avatar?.url || null,
         createdAt: session.user.createdAt,
         updatedAt: session.user.updatedAt,

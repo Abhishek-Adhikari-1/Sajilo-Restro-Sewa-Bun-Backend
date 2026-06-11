@@ -1,5 +1,6 @@
 import { t, type UnwrapSchema } from "elysia";
 import { z } from "zod";
+import { userRoleEnum } from "../../db";
 
 export const registerBodySchema = z.object({
   firstName: z
@@ -21,6 +22,8 @@ export const registerBodySchema = z.object({
     .regex(/^[a-zA-Z]+$/, "Last name must only contain letters")
     .toLowerCase()
     .transform((name) => name.charAt(0).toUpperCase() + name.slice(1)),
+
+  role: z.enum(userRoleEnum.enumValues).default("waiter"),
 
   email: z.email("Please provide a valid email address").max(255).toLowerCase(),
 

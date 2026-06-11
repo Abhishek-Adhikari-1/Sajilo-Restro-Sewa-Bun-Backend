@@ -1,6 +1,6 @@
 import Elysia from "elysia";
 import { AuthModel } from "./auth.model";
-import { authPlugin } from "../../middleware/auth.plugin";
+import { tokenAuthPlugin } from "../../middleware/auth.plugin";
 import { AuthService } from "./auth.service";
 import { HTTP_STATUS } from "../../utils/http-status";
 
@@ -20,6 +20,7 @@ router.post(
       firstName: body.firstName,
       lastName: body.lastName,
       password: body.password,
+      role: body.role,
     });
     set.status = HTTP_STATUS.CREATED;
     return result;
@@ -64,24 +65,22 @@ router.post(
   },
 );
 
-router.post(
-  "/resend-verification",
-  async ({ body }) => {
-    const result = await AuthService.resendVerificationEmail({
-      email: body.email,
-    });
-    return result;
-  },
-  {
-    body: AuthModel.resendVerificationBody,
-    detail: { summary: "Resend email verification" },
-  },
-);
-
 // ─── Private routes ────────────────────────────────────────────────────────────
 
 router
-  .use(authPlugin)
+  .use(tokenAuthPlugin)
+  .post(
+    "/resend-verification",
+    async ({ user }) => {
+      const result = await AuthService.resendVerificationEmail({
+        email: user.email,
+      });
+      return result;
+    },
+    {
+      detail: { summary: "Resend email verification" },
+    },
+  )
   .post(
     "/logout",
     async ({ session }) => {

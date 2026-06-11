@@ -47,7 +47,7 @@ export abstract class UserRepo {
   }
 
   static async createUser(
-    data: Pick<NewUser, "firstName" | "lastName" | "email" | "status">,
+    data: Pick<NewUser, "firstName" | "lastName" | "email" | "status" | "role">,
     tx?: TX,
   ) {
     const [user] = await this.conn(tx).insert(users).values(data).returning();

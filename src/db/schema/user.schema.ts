@@ -18,6 +18,13 @@ export const userStatusEnum = pgEnum("user_status", [
   "disabled",
 ]);
 
+export const userRoleEnum = pgEnum("user_roles", [
+  "waiter",
+  "cashier",
+  "kitchen",
+  "admin",
+]);
+
 export const users = pgTable("users", {
   id: uuid("id")
     .primaryKey()
@@ -28,6 +35,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull().default(false),
   status: userStatusEnum("status").notNull().default("inactive"),
+  role: userRoleEnum("role").notNull().default("waiter"),
 
   // FK → images; nullable (user may not have an avatar)
   imageId: uuid("image_id").references(() => images.id, {
