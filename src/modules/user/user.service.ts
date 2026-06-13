@@ -67,6 +67,8 @@ export abstract class UserService {
 
     const userWithAvatar = await UserRepo.findUserById(createdUser.id);
 
+    console.log({ rawPassword });
+
     return {
       user: {
         id: userWithAvatar!.id,
@@ -81,7 +83,6 @@ export abstract class UserService {
         createdAt: userWithAvatar!.createdAt,
         updatedAt: userWithAvatar!.updatedAt,
       },
-      generatedPassword: rawPassword,
     };
   }
 
@@ -102,7 +103,10 @@ export abstract class UserService {
 
     const updated = await UserRepo.updateUser(id, data);
     if (!updated) {
-      throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, "Failed to update user.");
+      throw new AppError(
+        HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        "Failed to update user.",
+      );
     }
 
     const userWithAvatar = await UserRepo.findUserById(id);

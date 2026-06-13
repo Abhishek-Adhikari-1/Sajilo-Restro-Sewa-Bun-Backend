@@ -86,6 +86,7 @@ export const AuthModel = {
   refreshTokenBody: refreshTokenBodySchema,
   forgotPasswordBody: forgotPasswordBodySchema,
   resetPasswordBody: resetPasswordBodySchema,
+  userRegister: registerBodySchema.omit({ password: true }).extend({ imageId: z.string().uuid().optional() }),
 };
 
 export type AuthModel = {

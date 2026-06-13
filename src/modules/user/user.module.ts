@@ -14,8 +14,11 @@ const router = new Elysia({
 
 router.get(
   "/",
-  async () => {
-    const result = await UserService.getAllUsers();
+  async ({ user }) => {
+    let result = await UserService.getAllUsers();
+    if (user && user.id) {
+      result = result.filter((u: any) => u.id !== user.id);
+    }
     return { users: result, message: "Users fetched successfully" };
   },
   {
@@ -24,34 +27,34 @@ router.get(
   },
 );
 
-router.post(
-  "/",
-  async ({ body }) => {
-    const result = await UserService.createUser({
-      firstName: body.firstName,
-      lastName: body.lastName,
-      email: body.email,
-      role: body.role as any,
-      imageId: body.imageId,
-    });
-    return {
-      message: "Staff member created successfully",
-      data: result.user,
-      generatedPassword: result.generatedPassword,
-    };
-  },
-  {
-    body: z.object({
-      firstName: z.string().min(1),
-      lastName: z.string().min(1),
-      email: z.string().email(),
-      role: z.enum(["admin", "waiter", "cashier", "kitchen"]),
-      imageId: z.string().uuid().optional(),
-    }),
-    restrictTo: ["admin"],
-    detail: { summary: "Create a new staff user" },
-  },
-);
+// router.post(
+//   "/",
+//   async ({ body }) => {
+//     const result = await UserService.createUser({
+//       firstName: body.firstName,
+//       lastName: body.lastName,
+//       email: body.email,
+//       role: body.role as any,
+//       imageId: body.imageId,
+//     });
+//     return {
+//       message: "Staff member created successfully",
+//       data: result.user,
+//       generatedPassword: result.generatedPassword,
+//     };
+//   },
+//   {
+//     body: z.object({
+//       firstName: z.string().min(1),
+//       lastName: z.string().min(1),
+//       email: z.string().email(),
+//       role: z.enum(["admin", "waiter", "cashier", "kitchen"]),
+//       imageId: z.string().uuid().optional(),
+//     }),
+//     restrictTo: ["admin"],
+//     detail: { summary: "Create a new staff user" },
+//   },
+// );
 
 router.patch(
   "/:id",

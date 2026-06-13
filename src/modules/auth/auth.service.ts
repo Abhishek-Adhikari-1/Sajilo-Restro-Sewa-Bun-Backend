@@ -37,7 +37,7 @@ export abstract class AuthService {
     lastName,
     password,
     role,
-  }: RegisterService): Promise<{ message: string }> {
+  }: RegisterService): Promise<{ message: string, user: Awaited<ReturnType<typeof UserRepo.createUser>> }> {
     // 1. Check for existing email — fast path before transaction
     const existingUser = await UserRepo.findUserByEmail(email);
 
@@ -48,10 +48,11 @@ export abstract class AuthService {
 
     // 2. Hash password
     const passwordHash = await Password.hash(password);
+    var user: Awaited<ReturnType<typeof UserRepo.createUser>>;
 
-    await db.transaction(async (tx) => {
+    user = await db.transaction(async (tx) => {
       // 3. Create user
-      const user = await UserRepo.createUser(
+      user = await UserRepo.createUser(
         {
           firstName: firstName,
           lastName: lastName,
@@ -94,6 +95,8 @@ export abstract class AuthService {
         },
         tx,
       );
+
+      return user;
     });
 
     // 6. Send verification email
@@ -103,6 +106,7 @@ export abstract class AuthService {
     return {
       message:
         "Registration successful. Please check your email to verify your account.",
+        user: user
     };
   }
 
@@ -309,7 +313,7 @@ export abstract class AuthService {
 
   static async getUserSessions(userId: string, currentSessionId: string) {
     const activeSessions = await AuthRepo.findSessionsByUserId(userId);
-    return activeSessions.map(s => ({
+    return activeSessions.map((s) => ({
       id: s.id,
       userAgent: s.userAgent,
       ipAddress: s.ipAddress,

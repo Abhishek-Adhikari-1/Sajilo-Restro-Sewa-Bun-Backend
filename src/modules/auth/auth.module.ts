@@ -1,8 +1,12 @@
 import Elysia from "elysia";
 import { AuthModel } from "./auth.model";
-import { tokenAuthPlugin } from "../../middleware/auth.plugin";
+import { authPlugin, tokenAuthPlugin } from "../../middleware/auth.plugin";
 import { AuthService } from "./auth.service";
 import { HTTP_STATUS } from "../../utils/http-status";
+import { authorizationPlugin } from "../../middleware/authorization-plugin";
+import { UserService } from "../user/user.service";
+import { UserRepo } from "../user/user.repository";
+import { email } from "zod";
 
 const router = new Elysia({
   name: "auth-router",
@@ -12,24 +16,27 @@ const router = new Elysia({
 
 // ─── Public routes ────────────────────────────────────────────────────────────
 
-router.post(
-  "/register",
-  async ({ body, set }) => {
-    const result = await AuthService.register({
-      email: body.email,
-      firstName: body.firstName,
-      lastName: body.lastName,
-      password: body.password,
-      role: body.role,
-    });
-    set.status = HTTP_STATUS.CREATED;
-    return result;
-  },
-  {
-    body: AuthModel.registerBody,
-    detail: { summary: "Register a new user" },
-  },
-);
+// router.post(
+//   "/register",
+//   async ({ body }) => {
+//     const result = await UserService.createUser({
+//       firstName: body.firstName,
+//       lastName: body.lastName,
+//       email: body.email,
+//       role: body.role as any,
+//       imageId: body.imageId,
+//     });
+//     return {
+//       message: "Staff member created successfully",
+//       data: result.user,
+//       generatedPassword: result.generatedPassword,
+//     };
+//   },
+//   {
+//     body: AuthModel.registerBody,
+//     detail: { summary: "Register a new user" },
+//   },
+// );
 
 router.post(
   "/login",
@@ -135,6 +142,35 @@ router
     },
     {
       detail: { summary: "Logout from all devices" },
+    },
+  );
+
+router
+  .use(authPlugin)
+  .use(authorizationPlugin)
+  .post(
+    "/user-register",
+    async ({ body }) => {
+      const rawPassword = crypto.randomUUID().substring(0, 12);
+      await AuthService.register({
+        email: body.email,
+        firstName: body.firstName,
+        lastName: body.lastName,
+        password: rawPassword,
+        role: body.role,
+      });
+      
+      const user = await UserRepo.findUserByEmail(body.email);
+      
+      return {
+        message: "Staff member created successfully. An email has been sent with their credentials.",
+        data: user,
+      };
+    },
+    {
+      body: AuthModel.userRegister,
+      restrictTo: ["admin"],
+      detail: { summary: "Register a new user" },
     },
   );
 
