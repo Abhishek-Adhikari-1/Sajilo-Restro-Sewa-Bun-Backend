@@ -24,6 +24,7 @@ export const getAllTablesQuerySchema = z.object({
   limit: z.coerce.number().min(1).max(100).optional().default(20),
   offset: z.coerce.number().min(0).optional().default(0),
   status: z.enum(tableStatusEnum.enumValues).optional(),
+  search: z.string().optional(),
 });
 
 export const TablesModel = {

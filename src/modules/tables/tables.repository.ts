@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, and, or, ilike, count, sql } from "drizzle-orm";
 import { db, type TX } from "../../config/db";
 import { tables, type NewTable, tableStatusEnum } from "../../db/index";
 
@@ -14,12 +14,28 @@ export abstract class TablesRepo {
     status?: TableStatus | "all",
     limit: number = 20,
     offset: number = 0,
+    search?: string,
   ) {
+    const conditions = [];
+
+    if (status && status.toLowerCase() !== "all") {
+      conditions.push(eq(tables.status, status.toLowerCase() as TableStatus));
+    }
+
+    if (search && search.trim() !== "") {
+      const searchTerm = `%${search.trim()}%`;
+      conditions.push(
+        or(
+          ilike(tables.section, searchTerm),
+          sql`CAST(${tables.tableNumber} AS TEXT) ILIKE ${searchTerm}`
+        )
+      );
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
     return await this.conn(tx).query.tables.findMany({
-      where:
-        status && status.toLowerCase() !== "all"
-          ? eq(tables.status, status.toLowerCase() as TableStatus)
-          : undefined,
+      where: whereClause,
       orderBy: [tables.tableNumber],
       limit: limit,
       offset: offset,
@@ -31,6 +47,37 @@ export abstract class TablesRepo {
         },
       },
     });
+  }
+
+  static async countTables(
+    tx?: TX,
+    status?: TableStatus | "all",
+    search?: string,
+  ) {
+    const conditions = [];
+
+    if (status && status.toLowerCase() !== "all") {
+      conditions.push(eq(tables.status, status.toLowerCase() as TableStatus));
+    }
+
+    if (search && search.trim() !== "") {
+      const searchTerm = `%${search.trim()}%`;
+      conditions.push(
+        or(
+          ilike(tables.section, searchTerm),
+          sql`CAST(${tables.tableNumber} AS TEXT) ILIKE ${searchTerm}`
+        )
+      );
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const result = await this.conn(tx)
+      .select({ count: count() })
+      .from(tables)
+      .where(whereClause);
+
+    return result[0]?.count ?? 0;
   }
 
   static async findTableById(id: string, tx?: TX) {

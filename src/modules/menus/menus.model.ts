@@ -53,7 +53,16 @@ export const updateMenuStatusSchema = z.object({
 
 export const getAllMenusQuerySchema = z.object({
   categoryId: z.string().optional(),
-  isAvailable: z.boolean().optional(),
+  isAvailable: z.preprocess((val) => {
+    if (typeof val !== "string") return val;
+
+    const normalized = val.toLowerCase().trim();
+
+    if (["true", "1", "yes"].includes(normalized)) return true;
+    if (["false", "0", "no"].includes(normalized)) return false;
+
+    return undefined;
+  }, z.boolean().optional()),
   limit: z.coerce.number().min(1).max(100).optional().default(25),
   offset: z.coerce.number().min(0).optional().default(0),
   search: z.string().trim().optional(),

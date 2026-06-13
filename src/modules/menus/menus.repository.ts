@@ -1,4 +1,4 @@
-import { eq, and, ilike, or } from "drizzle-orm";
+import { eq, and, ilike, or, count } from "drizzle-orm";
 import { db, type TX } from "../../config/db";
 import { menus, type NewMenu } from "../../db/schema/menu.schema";
 import { categories } from "../../db/schema/category.schema";
@@ -73,6 +73,7 @@ export class MenusRepo {
         price: menus.price,
         estimatedPreparationTime: menus.estimatedPreparationTime,
         image: images.secureUrl,
+        imageId: menus.imageId,
         categoryId: menus.categoryId,
         categoryName: categories.name,
         isAvailable: menus.isAvailable,
@@ -130,5 +131,43 @@ export class MenusRepo {
       .where(eq(menus.id, id))
       .returning();
     return menu;
+  }
+
+  static async countMenus(
+    tx?: TX,
+    categoryId?: string,
+    isAvailable?: boolean,
+    search?: string,
+  ) {
+    const conditions = [];
+
+    if (categoryId) {
+      conditions.push(eq(menus.categoryId, categoryId));
+    }
+
+    if (isAvailable !== undefined) {
+      conditions.push(eq(menus.isAvailable, isAvailable));
+    }
+
+    if (search && search.trim() !== "") {
+      const searchTerm = `%${search.trim()}%`;
+      conditions.push(
+        or(
+          ilike(menus.name, searchTerm),
+          ilike(menus.description, searchTerm),
+          ilike(categories.name, searchTerm),
+        ),
+      );
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const [result] = await this.conn(tx)
+      .select({ value: count() })
+      .from(menus)
+      .leftJoin(categories, eq(menus.categoryId, categories.id))
+      .where(whereClause);
+
+    return result?.value ?? 0;
   }
 }

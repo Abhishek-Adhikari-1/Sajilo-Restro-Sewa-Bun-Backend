@@ -11,14 +11,21 @@ export abstract class TablesService {
     status?: TableStatus | "all",
     limit: number = 20,
     offset: number = 0,
+    search?: string,
   ) {
     const tables = await TablesRepo.findAllTables(
       undefined,
       status,
       limit,
       offset,
+      search,
     );
-    return tables;
+    const total = await TablesRepo.countTables(
+      undefined,
+      status,
+      search,
+    );
+    return { tables, total };
   }
 
   static async getTableById(id: string) {

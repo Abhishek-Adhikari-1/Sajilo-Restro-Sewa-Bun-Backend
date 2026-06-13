@@ -15,10 +15,11 @@ const router = new Elysia({
 router.get(
   "/",
   async ({ query, user }) => {
-    var result = await TablesService.getAllTables(
+    let { tables: result, total } = await TablesService.getAllTables(
       query.status,
       query.limit,
       query.offset,
+      query.search,
     );
 
     if (user.role !== "admin") {
@@ -28,7 +29,7 @@ router.get(
       }) as typeof result;
     }
 
-    return { tables: result, message: "Tables fetched successfully" };
+    return { tables: result, total, message: "Tables fetched successfully" };
   },
   {
     query: TablesModel.getAllTablesQuery,

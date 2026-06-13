@@ -15,7 +15,7 @@ const router = new Elysia({
 router.get(
   "/",
   async ({ query, user }) => {
-    var result = await MenusService.getAllMenus(
+    let { menus, total } = await MenusService.getAllMenus(
       query.categoryId,
       query.isAvailable,
       query.search,
@@ -24,13 +24,13 @@ router.get(
     );
 
     if (user.role !== "admin") {
-      result = result.map((menu) => {
+      menus = menus.map((menu) => {
         const { createdAt, updatedAt, ...rest } = menu;
         return rest;
-      }) as typeof result;
+      }) as typeof menus;
     }
 
-    return { menus: result, message: "Menu items fetched successfully" };
+    return { menus, total, message: "Menu items fetched successfully" };
   },
   {
     query: MenusModel.getAllMenusQuery,

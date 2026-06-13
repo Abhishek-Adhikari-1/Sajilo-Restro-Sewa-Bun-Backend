@@ -259,6 +259,8 @@ export abstract class OrdersRepo {
       .where(eq(orders.id, id))
       .returning();
 
+    if (!updatedOrder) throw new Error("Order not found or update failed");
+
     const [table] = await this.conn(tx).select().from(tables).where(eq(tables.id, updatedOrder.tableId));
 
     if (table) {
@@ -454,6 +456,7 @@ export abstract class OrdersRepo {
       }
 
       const [fullOrder] = await trx.select().from(orders).where(eq(orders.id, id));
+      if (!fullOrder) throw new Error("Order not found");
       const allItemsForOrder = await trx.query.orderItems.findMany({ where: (oi, { eq }) => eq(oi.orderId, id), with: { menu: true } });
       const [table] = await trx.select().from(tables).where(eq(tables.id, fullOrder.tableId));
 

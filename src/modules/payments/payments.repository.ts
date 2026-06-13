@@ -36,9 +36,11 @@ export class PaymentsRepo {
       .offset(Number(offset))
       .orderBy(desc(payments.createdAt));
 
-    const [{ count }] = await this.conn(tx).select({ count: sql`count(*)`.mapWith(Number) })
+    const res = await this.conn(tx).select({ count: sql`count(*)`.mapWith(Number) })
       .from(payments)
       .where(conditions.length > 0 ? and(...conditions) : undefined);
+      
+    const count = res[0]?.count ?? 0;
 
     return { data: results, total: count };
   }
@@ -90,7 +92,9 @@ export class PaymentsRepo {
               phone: data.customer.phone || undefined,
             })
             .returning();
-          customerId = newCustomer.id;
+          if (newCustomer) {
+            customerId = newCustomer.id;
+          }
         }
       }
 

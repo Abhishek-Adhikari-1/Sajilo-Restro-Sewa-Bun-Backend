@@ -1,37 +1,38 @@
-import { t } from "elysia";
+import { z } from "zod";
+import type { UnwrapSchema } from "elysia";
 
-export const checkoutBodySchema = t.Object({
-  order_id: t.String(),
-  method: t.Union([
-    t.Literal("cash"),
-    t.Literal("card"),
-    t.Literal("mobile_wallet"),
-    t.Literal("other"),
-  ]),
-  customer: t.Optional(
-    t.Object({
-      name: t.Optional(t.String()),
-      phone: t.Optional(t.String()),
+export const checkoutBodySchema = z.object({
+  order_id: z.string().trim(),
+  method: z.enum(["cash", "card", "mobile_wallet", "others"]),
+  customer: z
+    .object({
+      name: z.string().trim().optional(),
+      phone: z.string().trim().optional(),
     })
-  ),
-  discount_type: t.Optional(
-    t.Union([t.Literal("percentage"), t.Literal("fixed")])
-  ),
-  discount_value: t.Optional(t.Number()),
-  tax_type: t.Optional(
-    t.Union([t.Literal("percentage"), t.Literal("fixed")])
-  ),
-  tax_value: t.Optional(t.Number()),
-  notes: t.Optional(t.String()),
+    .optional(),
+  discount_type: z.enum(["percentage", "fixed"]).optional(),
+  discount_value: z.number().optional(),
+  tax_type: z.enum(["percentage", "fixed"]).optional(),
+  tax_value: z.number().optional(),
+  notes: z.string().trim().optional(),
 });
 
-export type CheckoutBody = typeof checkoutBodySchema.static;
+export type CheckoutBody = z.infer<typeof checkoutBodySchema>;
 
-export const historyQuerySchema = t.Object({
-  startDate: t.Optional(t.String()),
-  endDate: t.Optional(t.String()),
-  limit: t.Optional(t.Numeric()),
-  offset: t.Optional(t.Numeric()),
+export const historyQuerySchema = z.object({
+  startDate: z.string().trim().optional(),
+  endDate: z.string().trim().optional(),
+  limit: z.coerce.number().min(1).optional(),
+  offset: z.coerce.number().min(0).optional(),
 });
 
-export type HistoryQuery = typeof historyQuerySchema.static;
+export type HistoryQuery = z.infer<typeof historyQuerySchema>;
+
+export const PaymentsModel = {
+  checkoutBody: checkoutBodySchema,
+  historyQuery: historyQuerySchema,
+};
+
+export type PaymentsModel = {
+  [k in keyof typeof PaymentsModel]: UnwrapSchema<(typeof PaymentsModel)[k]>;
+};

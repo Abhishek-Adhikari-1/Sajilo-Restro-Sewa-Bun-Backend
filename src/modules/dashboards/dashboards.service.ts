@@ -24,8 +24,15 @@ export class DashboardsService {
       occupied: tableStats.find((t) => t.status === "occupied")?.count || 0,
     };
 
+    const revenueResult = await db
+      .select({
+        total: sql<number>`sum(${payments.totalAmount})`.mapWith(Number),
+      })
+      .from(payments)
+      .where(gte(payments.createdAt, today));
+
     return {
-      totalRevenueToday: 0, // Placeholder if no payments table yet
+      totalRevenueToday: revenueResult[0]?.total || 0,
       activeOrdersCount: activeOrders.length,
       tableStats: tablesSummary,
       recentOrders: activeOrders.slice(0, 10),

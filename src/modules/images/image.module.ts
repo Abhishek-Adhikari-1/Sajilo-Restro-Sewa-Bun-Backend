@@ -1,4 +1,4 @@
-import Elysia, { t } from "elysia";
+import Elysia from "elysia";
 import { ImageModel } from "./image.model";
 import { authPlugin } from "../../middleware/auth.plugin";
 import { ImageService } from "./image.service";

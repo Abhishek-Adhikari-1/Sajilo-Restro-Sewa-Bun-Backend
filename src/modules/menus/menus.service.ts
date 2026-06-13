@@ -21,7 +21,13 @@ export abstract class MenusService {
       limit,
       offset,
     );
-    return menus;
+    const total = await MenusRepo.countMenus(
+      undefined,
+      categoryId,
+      isAvailable,
+      search,
+    );
+    return { menus, total };
   }
 
   static async getMenuById(id: string) {
@@ -46,14 +52,16 @@ export abstract class MenusService {
         "Failed to update menu item",
       );
 
+    const completeMenu = await MenusRepo.findMenuById(id);
+
     io.emit("menu_status_updated", {
-      id: updatedMenu.id,
-      name: updatedMenu.name,
-      isAvailable: updatedMenu.isAvailable,
-      updatedAt: updatedMenu.updatedAt,
+      id: completeMenu!.id,
+      name: completeMenu!.name,
+      isAvailable: completeMenu!.isAvailable,
+      updatedAt: completeMenu!.updatedAt,
     });
 
-    return updatedMenu!;
+    return completeMenu!;
   }
 
   static async createMenu(data: MenusModel["createMenuBody"]) {

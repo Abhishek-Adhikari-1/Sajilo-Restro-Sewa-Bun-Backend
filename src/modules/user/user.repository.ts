@@ -111,4 +111,27 @@ export abstract class UserRepo {
         ),
       );
   }
+
+  static async findAllUsers(tx?: TX) {
+    return await this.conn(tx).query.users.findMany({
+      with: { avatar: true },
+    });
+  }
+
+  static async updateUser(
+    userId: string,
+    data: Partial<Pick<NewUser, "firstName" | "lastName" | "role" | "status" | "imageId">>,
+    tx?: TX,
+  ) {
+    const [user] = await this.conn(tx)
+      .update(users)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+
+    return user ?? null;
+  }
 }
