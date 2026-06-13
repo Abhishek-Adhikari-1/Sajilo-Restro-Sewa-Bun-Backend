@@ -116,6 +116,26 @@ router
     {
       detail: { summary: "Get current authenticated user" },
     },
+  )
+  .get(
+    "/sessions",
+    async ({ user, session }) => {
+      const sessions = await AuthService.getUserSessions(user.id, session.id);
+      return { sessions };
+    },
+    {
+      detail: { summary: "Get all active sessions for current user" },
+    },
+  )
+  .delete(
+    "/sessions",
+    async ({ user }) => {
+      const result = await AuthService.logoutAll({ userId: user.id });
+      return result;
+    },
+    {
+      detail: { summary: "Logout from all devices" },
+    },
   );
 
 export { router as auth_router };

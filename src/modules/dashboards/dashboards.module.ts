@@ -8,8 +8,9 @@ const router = new Elysia({ prefix: "/dashboard" })
   .use(authorizationPlugin)
   .get(
     "/admin",
-    async () => {
-      const data = await DashboardsService.getAdminDashboard();
+    async ({ query }) => {
+      const period = typeof query.period === "string" ? query.period : "today";
+      const data = await DashboardsService.getAdminDashboard(period);
       return { success: true, data };
     },
     {

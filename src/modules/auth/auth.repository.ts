@@ -40,6 +40,13 @@ export abstract class AuthRepo {
     );
   }
 
+  static async findSessionsByUserId(userId: string, tx?: TX) {
+    return await this.conn(tx).query.sessions.findMany({
+      where: eq(sessions.userId, userId),
+      orderBy: (sessions, { desc }) => [desc(sessions.createdAt)],
+    });
+  }
+
   static async findSessionById(id: string, tx?: TX) {
     return (
       (await this.conn(tx).query.sessions.findFirst({

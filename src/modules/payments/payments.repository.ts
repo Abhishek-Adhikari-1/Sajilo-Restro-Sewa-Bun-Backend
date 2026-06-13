@@ -178,7 +178,10 @@ export class PaymentsRepo {
               ? Math.max(0, table.occupiedSeats - order.guestsCount)
               : table.occupiedSeats;
               
-          const newStatus = newOccupiedSeats >= table.capacity ? "occupied" : "available";
+          let newStatus: any = newOccupiedSeats >= table.capacity ? "occupied" : "available";
+          if (table.status === "reserved" && newOccupiedSeats > 0) {
+            newStatus = "reserved";
+          }
 
           await trx
             .update(tables)

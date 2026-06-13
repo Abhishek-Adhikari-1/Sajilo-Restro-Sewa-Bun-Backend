@@ -49,6 +49,11 @@ export abstract class OrdersRepo {
     tx?: TX,
   ) {
     return await this.conn(tx).transaction(async (trx) => {
+      // 0. Fetch table first to validate
+      const [table] = await trx.select().from(tables).where(eq(tables.id, data.table_id));
+      if (!table) throw new Error("Table not found");
+      if (table.status === "reserved") throw new Error("Cannot create order: Table is reserved");
+
       // 1. Create the main order
       const [newOrder] = await trx
         .insert(orders)
@@ -95,11 +100,9 @@ export abstract class OrdersRepo {
         .returning();
 
       // 5. Update the table status and activeOrders array
-      const [table] = await trx.select().from(tables).where(eq(tables.id, data.table_id));
-      if (!table) throw new Error("Table not found");
-
       const newOccupiedSeats = table.occupiedSeats + data.guests_count;
-      const newStatus = newOccupiedSeats >= table.capacity ? "occupied" : "available";
+      let newStatus: any = newOccupiedSeats >= table.capacity ? "occupied" : "available";
+      if (table.status === "reserved") newStatus = "reserved";
 
       await trx
         .update(tables)
@@ -283,7 +286,10 @@ export abstract class OrdersRepo {
            newOccupiedSeats = Math.max(0, table.occupiedSeats - updatedOrder.guestsCount);
          }
          
-         const newStatus = newOccupiedSeats >= table.capacity ? "occupied" : "available";
+         let newStatus: any = newOccupiedSeats >= table.capacity ? "occupied" : "available";
+         if (table.status === "reserved" && newOccupiedSeats > 0) {
+           newStatus = "reserved";
+         }
 
          const activeOrdersUpdate = shouldRemoveActiveOrder 
              ? sql`array_remove(active_orders, ${id}::varchar)`

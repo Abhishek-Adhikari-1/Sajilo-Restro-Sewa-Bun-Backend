@@ -306,4 +306,21 @@ export abstract class AuthService {
     await AuthRepo.deleteAllSessionsByUserIdExcept(userId, sessionId);
     return { message: "Logged out all other sessions successfully." };
   }
+
+  static async getUserSessions(userId: string, currentSessionId: string) {
+    const activeSessions = await AuthRepo.findSessionsByUserId(userId);
+    return activeSessions.map(s => ({
+      id: s.id,
+      userAgent: s.userAgent,
+      ipAddress: s.ipAddress,
+      createdAt: s.createdAt,
+      expiresAt: s.expiresAt,
+      isCurrent: s.id === currentSessionId,
+    }));
+  }
+
+  static async logoutAll({ userId }: { userId: string }) {
+    await AuthRepo.deleteAllSessionsByUserId(userId);
+    return { message: "Logged out from all devices successfully." };
+  }
 }

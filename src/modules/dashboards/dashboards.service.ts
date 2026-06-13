@@ -4,10 +4,21 @@ import { sql, eq, and, gte, lt } from "drizzle-orm";
 import { OrdersRepo } from "../orders/orders.repository";
 
 export class DashboardsService {
-  static async getAdminDashboard() {
-    // Basic aggregation
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  static async getAdminDashboard(period: string = "today") {
+    const startDate = new Date();
+    startDate.setHours(0, 0, 0, 0);
+
+    let dateTruncUnit = "hour";
+    if (period === "weekly") {
+      startDate.setDate(startDate.getDate() - 7);
+      dateTruncUnit = "day";
+    } else if (period === "monthly") {
+      startDate.setMonth(startDate.getMonth() - 1);
+      dateTruncUnit = "day";
+    } else if (period === "yearly") {
+      startDate.setFullYear(startDate.getFullYear() - 1);
+      dateTruncUnit = "month";
+    }
 
     const activeOrders = await OrdersRepo.findActiveOrders();
 
@@ -29,13 +40,35 @@ export class DashboardsService {
         total: sql<number>`sum(${payments.totalAmount})`.mapWith(Number),
       })
       .from(payments)
-      .where(gte(payments.createdAt, today));
+      .where(gte(payments.createdAt, startDate));
+
+    const revenueTrendResult = await db
+      .select({
+        label: sql<string>`to_char(date_trunc(${sql.raw(`'${dateTruncUnit}'`)}, ${payments.createdAt}), 'YYYY-MM-DD HH24:00:00')`,
+        value: sql<number>`sum(${payments.totalAmount})`.mapWith(Number),
+      })
+      .from(payments)
+      .where(gte(payments.createdAt, startDate))
+      .groupBy(sql`date_trunc(${sql.raw(`'${dateTruncUnit}'`)}, ${payments.createdAt})`)
+      .orderBy(sql`date_trunc(${sql.raw(`'${dateTruncUnit}'`)}, ${payments.createdAt})`);
+
+    const orderStatusResult = await db
+      .select({
+        status: orders.status,
+        count: sql<number>`count(*)`.mapWith(Number),
+      })
+      .from(orders)
+      .where(gte(orders.createdAt, startDate))
+      .groupBy(orders.status);
 
     return {
-      totalRevenueToday: revenueResult[0]?.total || 0,
+      period,
+      totalRevenue: revenueResult[0]?.total || 0,
       activeOrdersCount: activeOrders.length,
       tableStats: tablesSummary,
       recentOrders: activeOrders.slice(0, 10),
+      revenueTrend: revenueTrendResult,
+      orderStatusDistribution: orderStatusResult,
     };
   }
 
