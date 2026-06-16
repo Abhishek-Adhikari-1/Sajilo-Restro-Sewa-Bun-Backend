@@ -3,6 +3,7 @@ import { env } from "./config/env";
 
 const server = Bun.serve({
   port: env.PORT,
+  hostname: "0.0.0.0",
   idleTimeout: 30,
   fetch(req, server) {
     const url = new URL(req.url);
