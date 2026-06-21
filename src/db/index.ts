@@ -17,3 +17,7 @@ export * from "./schema/menu.schema";
 export * from "./schema/order.schema";
 export * from "./schema/order_item.schema";
 export * from "./schema/payment.schema";
+
+// Expenses
+export * from "./schema/expense.schema";
+

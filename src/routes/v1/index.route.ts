@@ -9,6 +9,7 @@ import { dashboards_router } from "../../modules/dashboards/dashboards.module";
 import { payments_router } from "../../modules/payments/payments.module";
 import { customers_router } from "../../modules/customers/customers.module";
 import { user_router } from "../../modules/user/user.module";
+import { expenses_router } from "../../modules/expenses/expenses.module";
 
 const router = new Elysia({ name: "api-v1-router" })
   .use(auth_router)
@@ -20,7 +21,8 @@ const router = new Elysia({ name: "api-v1-router" })
   .use(dashboards_router)
   .use(payments_router)
   .use(customers_router)
-  .use(user_router);
+  .use(user_router)
+  .use(expenses_router);
 
 router.get("/", async () => {
   return {

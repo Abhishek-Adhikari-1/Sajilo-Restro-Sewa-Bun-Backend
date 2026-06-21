@@ -1,5 +1,5 @@
 import { db } from "../../config/db";
-import { orders, orderItems, tables, payments } from "../../db/index";
+import { orders, orderItems, tables, payments, expenses } from "../../db/index";
 import { sql, eq, and, gte, lt } from "drizzle-orm";
 import { OrdersRepo } from "../orders/orders.repository";
 
@@ -52,6 +52,23 @@ export class DashboardsService {
       .groupBy(sql`date_trunc(${sql.raw(`'${dateTruncUnit}'`)}, ${payments.createdAt})`)
       .orderBy(sql`date_trunc(${sql.raw(`'${dateTruncUnit}'`)}, ${payments.createdAt})`);
 
+    const expenseResult = await db
+      .select({
+        total: sql<number>`sum(${expenses.amount})`.mapWith(Number),
+      })
+      .from(expenses)
+      .where(gte(expenses.date, startDate));
+
+    const expenseTrendResult = await db
+      .select({
+        label: sql<string>`to_char(date_trunc(${sql.raw(`'${dateTruncUnit}'`)}, ${expenses.date}), 'YYYY-MM-DD HH24:00:00')`,
+        value: sql<number>`sum(${expenses.amount})`.mapWith(Number),
+      })
+      .from(expenses)
+      .where(gte(expenses.date, startDate))
+      .groupBy(sql`date_trunc(${sql.raw(`'${dateTruncUnit}'`)}, ${expenses.date})`)
+      .orderBy(sql`date_trunc(${sql.raw(`'${dateTruncUnit}'`)}, ${expenses.date})`);
+
     const orderStatusResult = await db
       .select({
         status: orders.status,
@@ -64,10 +81,12 @@ export class DashboardsService {
     return {
       period,
       totalRevenue: revenueResult[0]?.total || 0,
+      totalExpenses: expenseResult[0]?.total || 0,
       activeOrdersCount: activeOrders.length,
       tableStats: tablesSummary,
       recentOrders: activeOrders.slice(0, 10),
       revenueTrend: revenueTrendResult,
+      expenseTrend: expenseTrendResult,
       orderStatusDistribution: orderStatusResult,
     };
   }

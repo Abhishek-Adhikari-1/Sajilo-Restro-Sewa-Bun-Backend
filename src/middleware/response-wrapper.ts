@@ -52,6 +52,8 @@ export const responseWrapper = new Elysia({
         code,
       };
 
+      console.log({code, error})
+
       switch (code) {
         case "APP_ERROR":
           set.status = error.statusCode;

@@ -15,6 +15,13 @@
       "when": 1781344160232,
       "tag": "0001_gorgeous_sally_floyd",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782024172741,
+      "tag": "0002_overconfident_toad",
+      "breakpoints": true
     }
   ]
 }
