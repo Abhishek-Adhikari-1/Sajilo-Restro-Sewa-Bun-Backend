@@ -145,6 +145,21 @@ router
     {
       detail: { summary: "Logout from all devices" },
     },
+  )
+  .post(
+    "/change-password",
+    async ({ body, user }) => {
+      const result = await AuthService.changePassword({
+        userId: user.id,
+        currentPassword: body.currentPassword,
+        newPassword: body.newPassword,
+      });
+      return result;
+    },
+    {
+      body: AuthModel.changePasswordBody,
+      detail: { summary: "Change current user's password" },
+    },
   );
 
 router

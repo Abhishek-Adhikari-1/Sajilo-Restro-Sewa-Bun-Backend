@@ -45,7 +45,7 @@ export const loginBodySchema = z.object({
 
 export const verifyEmailQuerySchema = z.object({
   token: z.string().min(1, "Verification token is required"),
-  email: z.string().email("Please provide a valid email address"),
+  // email: z.string().email("Please provide a valid email address"),
 });
 
 export const resendVerificationBodySchema = z.object({
@@ -79,6 +79,28 @@ export const resetPasswordBodySchema = z
     path: ["confirmPassword"],
   });
 
+export const changePasswordBodySchema = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .max(128, "Password must be at most 128 characters")
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+        "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+      ),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  })
+  .refine((data) => data.currentPassword !== data.newPassword, {
+    message: "New password must be different from the current password",
+    path: ["newPassword"],
+  });
+
 export const AuthModel = {
   registerBody: registerBodySchema,
   loginBody: loginBodySchema,
@@ -87,6 +109,7 @@ export const AuthModel = {
   refreshTokenBody: refreshTokenBodySchema,
   forgotPasswordBody: forgotPasswordBodySchema,
   resetPasswordBody: resetPasswordBodySchema,
+  changePasswordBody: changePasswordBodySchema,
   userRegister: registerBodySchema.omit({ password: true }).extend({ imageId: z.string().uuid().optional() }),
 };
 

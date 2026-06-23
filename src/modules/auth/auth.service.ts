@@ -101,7 +101,7 @@ export abstract class AuthService {
     });
 
     // 6. Send verification email (non-blocking — queued)
-    const verificationUrl = `${env.FRONTEND_URL}/api/v1/auth/verify-email?token=${rawToken}&email=${encodeURIComponent(email)}`;
+    const verificationUrl = `${env.FRONTEND_URL}/auth/verify-email?token=${rawToken}&email=${encodeURIComponent(email)}`;
     enqueueEmail({
       type: "email_verification",
       to: email,
@@ -189,7 +189,7 @@ export abstract class AuthService {
     };
   }
 
-  static async verifyEmail({ token, email }: VerifyEmailService) {
+  static async verifyEmail({ token }: VerifyEmailService) {
     const tokenHash = hashToken(token);
 
     const verification = await AuthRepo.findVerificationByToken(
@@ -265,7 +265,7 @@ export abstract class AuthService {
       );
     });
 
-    const verificationUrl = `${env.FRONTEND_URL}/api/v1/auth/verify-email?token=${raw}&email=${encodeURIComponent(email)}`;
+    const verificationUrl = `${env.FRONTEND_URL}/auth/verify-email?token=${raw}&email=${encodeURIComponent(email)}`;
     enqueueEmail({
       type: "email_verification",
       to: email,
@@ -336,6 +336,48 @@ export abstract class AuthService {
       expiresAt: s.expiresAt,
       isCurrent: s.id === currentSessionId,
     }));
+  }
+
+  static async changePassword({
+    userId,
+    currentPassword,
+    newPassword,
+  }: {
+    userId: string;
+    currentPassword: string;
+    newPassword: string;
+  }) {
+    // Fetch user with credentials account (includes hashed password)
+    const userBase = await UserRepo.findUserById(userId);
+    if (!userBase) {
+      throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found.");
+    }
+
+    const user = await UserRepo.findUserWithAccount(userBase.email);
+    if (!user) {
+      throw new AppError(HTTP_STATUS.NOT_FOUND, "User not found.");
+    }
+
+    const accountPassword = user.accounts?.[0]?.password ?? null;
+    if (!accountPassword) {
+      throw new AppError(
+        HTTP_STATUS.BAD_REQUEST,
+        "No password-based account found. Please use your social login.",
+      );
+    }
+
+    const isValid = await Password.verify(currentPassword, accountPassword);
+    if (!isValid) {
+      throw new AppError(
+        HTTP_STATUS.UNAUTHORIZED,
+        "Current password is incorrect.",
+      );
+    }
+
+    const newHash = await Password.hash(newPassword);
+    await UserRepo.updateUserPassword(userId, newHash);
+
+    return { message: "Password changed successfully." };
   }
 
   static async logoutAll({ userId }: { userId: string }) {
