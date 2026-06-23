@@ -10,6 +10,7 @@ import { payments_router } from "../../modules/payments/payments.module";
 import { customers_router } from "../../modules/customers/customers.module";
 import { user_router } from "../../modules/user/user.module";
 import { expenses_router } from "../../modules/expenses/expenses.module";
+import { email_router } from "../../modules/emails/email.module";
 
 const router = new Elysia({ name: "api-v1-router" })
   .use(auth_router)
@@ -22,7 +23,8 @@ const router = new Elysia({ name: "api-v1-router" })
   .use(payments_router)
   .use(customers_router)
   .use(user_router)
-  .use(expenses_router);
+  .use(expenses_router)
+  .use(email_router);
 
 router.get("/", async () => {
   return {

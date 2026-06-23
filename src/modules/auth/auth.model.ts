@@ -43,8 +43,9 @@ export const loginBodySchema = z.object({
   password: z.string().nonempty("Password is required"),
 });
 
-export const verifyEmailBodySchema = z.object({
+export const verifyEmailQuerySchema = z.object({
   token: z.string().min(1, "Verification token is required"),
+  email: z.string().email("Please provide a valid email address"),
 });
 
 export const resendVerificationBodySchema = z.object({
@@ -81,7 +82,7 @@ export const resetPasswordBodySchema = z
 export const AuthModel = {
   registerBody: registerBodySchema,
   loginBody: loginBodySchema,
-  verifyEmailBody: verifyEmailBodySchema,
+  verifyEmailQuery: verifyEmailQuerySchema,
   resendVerificationBody: resendVerificationBodySchema,
   refreshTokenBody: refreshTokenBodySchema,
   forgotPasswordBody: forgotPasswordBodySchema,

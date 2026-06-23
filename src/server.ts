@@ -1,6 +1,11 @@
 import { app, ioHandler } from "./app";
 import { env } from "./config/env";
+import { startEmailWorker } from "./queue/email.worker";
 
+// ─── Start Email Worker ────────────────────────────────────────────────────────
+const emailWorker = startEmailWorker();
+
+// ─── HTTP Server ──────────────────────────────────────────────────────────────
 const server = Bun.serve({
   port: env.PORT,
   hostname: "0.0.0.0",
@@ -20,10 +25,13 @@ console.log(
 );
 console.log(`🔌 Socket.IO running on /realtime/`);
 
+// ─── Graceful Shutdown ─────────────────────────────────────────────────────────
 const shutdown = async (signal: string) => {
   console.log(`\n${signal} received. Shutting down gracefully...`);
   server.stop();
   console.log("🌐 HTTP server closed.");
+  await emailWorker.close();
+  console.log("📪 Email worker closed.");
   process.exit(0);
 };
 

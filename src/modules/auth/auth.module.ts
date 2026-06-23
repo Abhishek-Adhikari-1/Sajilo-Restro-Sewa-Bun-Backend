@@ -6,7 +6,8 @@ import { HTTP_STATUS } from "../../utils/http-status";
 import { authorizationPlugin } from "../../middleware/authorization-plugin";
 import { UserService } from "../user/user.service";
 import { UserRepo } from "../user/user.repository";
-import { email } from "zod";
+import { enqueueEmail } from "../../queue/email.queue";
+import { env } from "../../config/env";
 
 const router = new Elysia({
   name: "auth-router",
@@ -58,16 +59,17 @@ router.post(
   },
 );
 
-router.post(
+router.get(
   "/verify-email",
-  async ({ body }) => {
+  async ({ query }) => {
     const result = await AuthService.verifyEmail({
-      token: body.token,
+      token: query.token,
+      email: query.email,
     });
     return result;
   },
   {
-    body: AuthModel.verifyEmailBody,
+    query: AuthModel.verifyEmailQuery,
     detail: { summary: "Verify email address" },
   },
 );
@@ -161,6 +163,20 @@ router
       });
       
       const user = await UserRepo.findUserByEmail(body.email);
+
+      // Send welcome email with credentials to the new staff member
+      if (user) {
+        enqueueEmail({
+          type: "account_created",
+          to: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          password: rawPassword,
+          role: user.role,
+          loginUrl: ``,
+        }).catch((err) => console.error("Failed to enqueue account-created email:", err));
+      }
       
       return {
         message: "Staff member created successfully. An email has been sent with their credentials.",

@@ -4,7 +4,7 @@ import { AppError } from "../../utils/app-error";
 import { addDays, addHours, addMinutes, isExpired } from "../../utils/date";
 import { Password } from "../../utils/hash";
 import { HTTP_STATUS } from "../../utils/http-status";
-import { sendEmail } from "../../utils/mailer";
+import { enqueueEmail } from "../../queue/email.queue";
 import { generateAndHashToken, hashToken } from "../../utils/token";
 import { AuthModel } from "./auth.model";
 import { UserRepo } from "../user/user.repository";
@@ -16,8 +16,7 @@ type LoginService = AuthModel["loginBody"] & {
   userAgent?: string;
   ipAddress?: string;
 };
-
-type VerifyEmailService = AuthModel["verifyEmailBody"];
+type VerifyEmailService = AuthModel["verifyEmailQuery"];
 
 type ResendVerificationService = AuthModel["resendVerificationBody"];
 
@@ -37,7 +36,10 @@ export abstract class AuthService {
     lastName,
     password,
     role,
-  }: RegisterService): Promise<{ message: string, user: Awaited<ReturnType<typeof UserRepo.createUser>> }> {
+  }: RegisterService): Promise<{
+    message: string;
+    user: Awaited<ReturnType<typeof UserRepo.createUser>>;
+  }> {
     // 1. Check for existing email — fast path before transaction
     const existingUser = await UserRepo.findUserByEmail(email);
 
@@ -48,11 +50,10 @@ export abstract class AuthService {
 
     // 2. Hash password
     const passwordHash = await Password.hash(password);
-    var user: Awaited<ReturnType<typeof UserRepo.createUser>>;
 
-    user = await db.transaction(async (tx) => {
+    const { user, rawToken } = await db.transaction(async (tx) => {
       // 3. Create user
-      user = await UserRepo.createUser(
+      const createdUser = await UserRepo.createUser(
         {
           firstName: firstName,
           lastName: lastName,
@@ -66,17 +67,17 @@ export abstract class AuthService {
       // 4. Create email/password account record
       await UserRepo.createAccount(
         {
-          userId: user.id,
+          userId: createdUser.id,
           providerId: "credentials",
           password: passwordHash,
-          accountId: user.id,
+          accountId: createdUser.id,
         },
         tx,
       );
 
       // 5. Generate email verification token
-      const { hashed } = generateAndHashToken();
-      const identifier = `userId:${user.id}`;
+      const { raw: rawToken, hashed } = generateAndHashToken();
+      const identifier = `userId:${createdUser.id}`;
 
       // Delete any old tokens for this email (idempotent registration retry)
       await AuthRepo.deleteVerificationsByIdentifier(
@@ -91,22 +92,29 @@ export abstract class AuthService {
           type: "email_verification",
           tokenHash: hashed,
           expiresAt: addHours(new Date(), env.EMAIL_VERIFICATION_EXPIRES_HOURS),
-          metadata: { userId: user.id },
+          metadata: { userId: createdUser.id },
         },
         tx,
       );
 
-      return user;
+      return { user: createdUser, rawToken };
     });
 
-    // 6. Send verification email
-    // const verificationUrl = `${env.FRONTEND_URL}/auth/verify-email?token=${rawToken}&email=${encodeURIComponent(email)}`;
-    sendEmail();
+    // 6. Send verification email (non-blocking — queued)
+    const verificationUrl = `${env.FRONTEND_URL}/api/v1/auth/verify-email?token=${rawToken}&email=${encodeURIComponent(email)}`;
+    enqueueEmail({
+      type: "email_verification",
+      to: email,
+      firstName: user.firstName,
+      verificationUrl,
+    }).catch((err) =>
+      console.error("Failed to enqueue verification email:", err),
+    );
 
     return {
       message:
         "Registration successful. Please check your email to verify your account.",
-        user: user
+      user: user,
     };
   }
 
@@ -181,7 +189,7 @@ export abstract class AuthService {
     };
   }
 
-  static async verifyEmail({ token }: VerifyEmailService) {
+  static async verifyEmail({ token, email }: VerifyEmailService) {
     const tokenHash = hashToken(token);
 
     const verification = await AuthRepo.findVerificationByToken(
@@ -257,8 +265,15 @@ export abstract class AuthService {
       );
     });
 
-    // const verificationUrl = `${env.FRONTEND_URL}/auth/verify-email?token=${raw}&email=${encodeURIComponent(email)}`;
-    sendEmail();
+    const verificationUrl = `${env.FRONTEND_URL}/api/v1/auth/verify-email?token=${raw}&email=${encodeURIComponent(email)}`;
+    enqueueEmail({
+      type: "email_verification",
+      to: email,
+      firstName: user.firstName,
+      verificationUrl,
+    }).catch((err) =>
+      console.error("Failed to enqueue verification email:", err),
+    );
 
     return { message: genericMessage };
   }

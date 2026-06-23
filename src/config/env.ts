@@ -27,6 +27,20 @@ const envSchema = z.object({
   CLOUDINARY_CLOUD_NAME: z.string(),
   CLOUDINARY_API_KEY: z.string(),
   CLOUDINARY_API_SECRET: z.string(),
+
+  // ─── Redis ──────────────────────────────────────────────────────────────────
+  REDIS_URL: z.string().default("redis://127.0.0.1:6379"),
+
+  // ─── Frontend ───────────────────────────────────────────────────────────────
+  FRONTEND_URL: z.string().default("http://localhost:3000"),
+
+  // ─── SMTP ───────────────────────────────────────────────────────────────────
+  SMTP_SERVICE: z.string().default("smtp.gmail.com"),
+  SMTP_PORT: z.coerce.number().default(587),
+  SMTP_SECURE: z.coerce.boolean().default(false),
+  SMTP_USER: z.string().default(""),
+  SMTP_PASS: z.string().default(""),
+  SMTP_FROM: z.string().default("Sajilo Restro Sewa <noreply@sajilorestro.com>"),
 });
 
 const parsed = envSchema.safeParse(process.env);

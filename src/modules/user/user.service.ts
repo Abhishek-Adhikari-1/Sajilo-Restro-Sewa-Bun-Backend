@@ -3,6 +3,8 @@ import { UserRepo } from "./user.repository";
 import { Password } from "../../utils/hash";
 import { AppError } from "../../utils/app-error";
 import { HTTP_STATUS } from "../../utils/http-status";
+import { enqueueEmail } from "../../queue/email.queue";
+import { env } from "../../config/env";
 
 export abstract class UserService {
   static async getAllUsers() {
@@ -67,7 +69,17 @@ export abstract class UserService {
 
     const userWithAvatar = await UserRepo.findUserById(createdUser.id);
 
-    console.log({ rawPassword });
+    // Send account-created email with generated credentials (non-blocking — queued)
+    enqueueEmail({
+      type: "account_created",
+      to: data.email,
+      firstName: userWithAvatar!.firstName,
+      lastName: userWithAvatar!.lastName,
+      email: data.email,
+      password: rawPassword,
+      role: data.role,
+      loginUrl: ``,
+    }).catch((err) => console.error("Failed to enqueue account-created email:", err));
 
     return {
       user: {
