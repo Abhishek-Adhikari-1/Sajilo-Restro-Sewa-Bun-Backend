@@ -129,6 +129,7 @@ export abstract class OrdersRepo {
         id: newOrder.id,
         table_id: newOrder.tableId,
         table_number: table.tableNumber,
+        table_section: table.section,
         status: newOrder.status,
         items,
         notes: newOrder.notes,
@@ -187,6 +188,7 @@ export abstract class OrdersRepo {
         id: order.id,
         table_id: order.tableId,
         table_number: order.table?.tableNumber,
+        table_section: order.table?.section,
         status: order.status,
         items,
         notes: order.notes,
@@ -241,6 +243,7 @@ export abstract class OrdersRepo {
         id: order.id,
         table_id: order.tableId,
         table_number: order.table?.tableNumber,
+        table_section: order.table?.section,
         status: order.status,
         items,
         notes: order.notes,
@@ -337,6 +340,7 @@ export abstract class OrdersRepo {
       id: updatedOrder.id,
       table_id: updatedOrder.tableId,
       table_number: table?.tableNumber,
+      table_section: table?.section,
       status: updatedOrder.status,
       items: allItemsForOrder.map((item) => ({
         id: item.id,
@@ -398,6 +402,7 @@ export abstract class OrdersRepo {
         id: fullOrder.id,
         table_id: fullOrder.tableId,
         table_number: table?.tableNumber,
+        table_section: table?.section,
         status: fullOrder.status,
         items: allItemsForOrder.map((item) => ({
           id: item.id,
@@ -470,6 +475,7 @@ export abstract class OrdersRepo {
         id: fullOrder.id,
         table_id: fullOrder.tableId,
         table_number: table?.tableNumber,
+        table_section: table?.section,
         status: fullOrder.status,
         items: allItemsForOrder.map((item) => ({
           id: item.id,
@@ -540,6 +546,7 @@ export abstract class OrdersRepo {
       id: fullOrder.id,
       table_id: fullOrder.tableId,
       table_number: table?.tableNumber,
+      table_section: table?.section,
       status: fullOrder.status,
       items: allItemsForOrder.map((item) => ({
         id: item.id,

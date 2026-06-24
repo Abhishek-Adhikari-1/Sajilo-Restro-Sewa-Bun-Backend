@@ -3,22 +3,44 @@ import { orders, orderItems, tables, payments, expenses } from "../../db/index";
 import { sql, eq, and, gte, lt } from "drizzle-orm";
 import { OrdersRepo } from "../orders/orders.repository";
 
+function getClientDateBoundaries(offsetMinutes: number = 0, period: string = "today") {
+  const now = new Date();
+  const clientTimeMs = now.getTime() + offsetMinutes * 60000;
+  const clientDate = new Date(clientTimeMs);
+  
+  clientDate.setUTCHours(0, 0, 0, 0);
+
+  if (period === "weekly") {
+    clientDate.setUTCDate(clientDate.getUTCDate() - 7);
+  } else if (period === "monthly") {
+    clientDate.setUTCMonth(clientDate.getUTCMonth() - 1);
+  } else if (period === "yearly") {
+    clientDate.setUTCFullYear(clientDate.getUTCFullYear() - 1);
+  }
+
+  return new Date(clientDate.getTime() - offsetMinutes * 60000);
+}
+
+function getTzString(offsetMinutes: number) {
+  const sign = offsetMinutes >= 0 ? '+' : '-';
+  const absOffset = Math.abs(offsetMinutes);
+  const hrs = Math.floor(absOffset / 60).toString().padStart(2, '0');
+  const mins = (absOffset % 60).toString().padStart(2, '0');
+  return `${sign}${hrs}:${mins}`;
+}
+
 export class DashboardsService {
-  static async getAdminDashboard(period: string = "today") {
-    const startDate = new Date();
-    startDate.setHours(0, 0, 0, 0);
+  static async getAdminDashboard(period: string = "today", offsetMinutes: number = 0) {
+    const startDate = getClientDateBoundaries(offsetMinutes, period);
 
     let dateTruncUnit = "hour";
-    if (period === "weekly") {
-      startDate.setDate(startDate.getDate() - 7);
-      dateTruncUnit = "day";
-    } else if (period === "monthly") {
-      startDate.setMonth(startDate.getMonth() - 1);
+    if (period === "weekly" || period === "monthly") {
       dateTruncUnit = "day";
     } else if (period === "yearly") {
-      startDate.setFullYear(startDate.getFullYear() - 1);
       dateTruncUnit = "month";
     }
+
+    const tzStr = getTzString(offsetMinutes);
 
     const activeOrders = await OrdersRepo.findActiveOrders();
 
@@ -44,13 +66,13 @@ export class DashboardsService {
 
     const revenueTrendResult = await db
       .select({
-        label: sql<string>`to_char(date_trunc(${sql.raw(`'${dateTruncUnit}'`)}, ${payments.createdAt}), 'YYYY-MM-DD HH24:00:00')`,
+        label: sql<string>`to_char(date_trunc(${sql.raw(`'${dateTruncUnit}'`)}, ${payments.createdAt} AT TIME ZONE 'UTC' AT TIME ZONE ${sql.raw(`'${tzStr}'`)}), 'YYYY-MM-DD HH24:00:00')`,
         value: sql<number>`sum(${payments.totalAmount})`.mapWith(Number),
       })
       .from(payments)
       .where(gte(payments.createdAt, startDate))
-      .groupBy(sql`date_trunc(${sql.raw(`'${dateTruncUnit}'`)}, ${payments.createdAt})`)
-      .orderBy(sql`date_trunc(${sql.raw(`'${dateTruncUnit}'`)}, ${payments.createdAt})`);
+      .groupBy(sql`date_trunc(${sql.raw(`'${dateTruncUnit}'`)}, ${payments.createdAt} AT TIME ZONE 'UTC' AT TIME ZONE ${sql.raw(`'${tzStr}'`)})`)
+      .orderBy(sql`date_trunc(${sql.raw(`'${dateTruncUnit}'`)}, ${payments.createdAt} AT TIME ZONE 'UTC' AT TIME ZONE ${sql.raw(`'${tzStr}'`)})`);
 
     const expenseResult = await db
       .select({
@@ -61,13 +83,13 @@ export class DashboardsService {
 
     const expenseTrendResult = await db
       .select({
-        label: sql<string>`to_char(date_trunc(${sql.raw(`'${dateTruncUnit}'`)}, ${expenses.date}), 'YYYY-MM-DD HH24:00:00')`,
+        label: sql<string>`to_char(date_trunc(${sql.raw(`'${dateTruncUnit}'`)}, ${expenses.date} AT TIME ZONE 'UTC' AT TIME ZONE ${sql.raw(`'${tzStr}'`)}), 'YYYY-MM-DD HH24:00:00')`,
         value: sql<number>`sum(${expenses.amount})`.mapWith(Number),
       })
       .from(expenses)
       .where(gte(expenses.date, startDate))
-      .groupBy(sql`date_trunc(${sql.raw(`'${dateTruncUnit}'`)}, ${expenses.date})`)
-      .orderBy(sql`date_trunc(${sql.raw(`'${dateTruncUnit}'`)}, ${expenses.date})`);
+      .groupBy(sql`date_trunc(${sql.raw(`'${dateTruncUnit}'`)}, ${expenses.date} AT TIME ZONE 'UTC' AT TIME ZONE ${sql.raw(`'${tzStr}'`)})`)
+      .orderBy(sql`date_trunc(${sql.raw(`'${dateTruncUnit}'`)}, ${expenses.date} AT TIME ZONE 'UTC' AT TIME ZONE ${sql.raw(`'${tzStr}'`)})`);
 
     const orderStatusResult = await db
       .select({
@@ -91,11 +113,9 @@ export class DashboardsService {
     };
   }
 
-  static async getWaiterDashboard(userId: string) {
+  static async getWaiterDashboard(userId: string, offsetMinutes: number = 0) {
     const activeOrders = await OrdersRepo.findActiveOrders();
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = getClientDateBoundaries(offsetMinutes, "today");
 
     const myOrdersTodayResult = await db
       .select({ count: sql<number>`count(*)`.mapWith(Number) })
@@ -123,7 +143,7 @@ export class DashboardsService {
     };
   }
 
-  static async getKitchenDashboard() {
+  static async getKitchenDashboard(offsetMinutes: number = 0) {
     const activeOrders = await OrdersRepo.findActiveOrders();
 
     const pendingOrders = activeOrders.filter(
@@ -134,8 +154,7 @@ export class DashboardsService {
     ).length;
     const readyOrders = activeOrders.filter((o) => o.status === "ready").length;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = getClientDateBoundaries(offsetMinutes, "today");
 
     const completedTodayResult = await db
       .select({ count: sql<number>`count(*)`.mapWith(Number) })
@@ -153,11 +172,9 @@ export class DashboardsService {
     };
   }
 
-  static async getCashierDashboard() {
+  static async getCashierDashboard(offsetMinutes: number = 0) {
     const unpaidOrders = await OrdersRepo.findUnpaidOrders();
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = getClientDateBoundaries(offsetMinutes, "today");
 
     const revenueResult = await db
       .select({

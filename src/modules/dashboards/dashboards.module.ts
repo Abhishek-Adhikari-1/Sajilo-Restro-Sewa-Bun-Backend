@@ -8,9 +8,10 @@ const router = new Elysia({ prefix: "/dashboard" })
   .use(authorizationPlugin)
   .get(
     "/admin",
-    async ({ query }) => {
+    async ({ query, headers }) => {
+      const offsetMinutes = parseInt(headers['x-timezone-offset'] || '0', 10);
       const period = typeof query.period === "string" ? query.period : "today";
-      const data = await DashboardsService.getAdminDashboard(period);
+      const data = await DashboardsService.getAdminDashboard(period, offsetMinutes);
       return { success: true, data };
     },
     {
@@ -19,8 +20,9 @@ const router = new Elysia({ prefix: "/dashboard" })
   )
   .get(
     "/waiter",
-    async ({ user }) => {
-      const data = await DashboardsService.getWaiterDashboard(user.id);
+    async ({ user, headers }) => {
+      const offsetMinutes = parseInt(headers['x-timezone-offset'] || '0', 10);
+      const data = await DashboardsService.getWaiterDashboard(user.id, offsetMinutes);
       return { success: true, data };
     },
     {
@@ -29,8 +31,9 @@ const router = new Elysia({ prefix: "/dashboard" })
   )
   .get(
     "/kitchen",
-    async () => {
-      const data = await DashboardsService.getKitchenDashboard();
+    async ({ headers }) => {
+      const offsetMinutes = parseInt(headers['x-timezone-offset'] || '0', 10);
+      const data = await DashboardsService.getKitchenDashboard(offsetMinutes);
       return { success: true, data };
     },
     {
@@ -39,8 +42,9 @@ const router = new Elysia({ prefix: "/dashboard" })
   )
   .get(
     "/cashier",
-    async () => {
-      const data = await DashboardsService.getCashierDashboard();
+    async ({ headers }) => {
+      const offsetMinutes = parseInt(headers['x-timezone-offset'] || '0', 10);
+      const data = await DashboardsService.getCashierDashboard(offsetMinutes);
       return { success: true, data };
     },
     {
