@@ -78,7 +78,7 @@ router.post(
   },
 );
 
-router.put(
+router.patch(
   "/:id",
   async ({ params, body }) => {
     const result = await MenusService.updateMenu(params.id, {
